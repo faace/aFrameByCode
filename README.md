@@ -15,7 +15,7 @@ Add the script after aframe.min.js
 <script src="https://faace.github.io/aFrameByCode/dist/aFrameByCode.min.js"></script>
 ```
 ## A full exmaple
-The link is [HERE](https://faace.github.io/aFrameByCode)
+The link is [HERE](https://faace.github.io/aFrameByCode).
 
 ![a full example](https://faace.github.io/aFrameByCode/imgs/fullExample.gif "a full example")
 
@@ -78,13 +78,14 @@ An example is:  [Open this link to see the result.](https://faace.github.io/aFra
 
 ## Add entities in function onInit
 Usually we add default entities in the onInit function when create a scene. Of course, we can add entities at any time and anywhere, we can also add entities in a component.
-There are many ways to add entities to the scene or another entities
-- add an entity in a simple way.
+There are many ways to add entities to the scene or another entities.
+- add an entity in a simple way
 ```
 scene.addAnEntity('a-box', {
     position: '0 1 -3',
 });
 ```
+
 - add with an object
 ```
 scene.addAnEntity({
@@ -95,6 +96,7 @@ scene.addAnEntity({
     }
 });
 ```
+
 - add with an id
 ```
 scene.addAnEntity({
@@ -105,6 +107,7 @@ scene.addAnEntity({
     }
 });
 ```
+
 - add many entities at the same time
 ```
 scene.addEntities({
@@ -124,7 +127,8 @@ scene.addEntities({
 ```
 
 ## handle assets
-a-assets will be added to the scene by default. And we can use it by scene.assets
+A-assets will be added to the scene by default.
+- We can use it by scene.assets
 ```
 scene.assets.add('video', { // tag, attributes
     id: 'v',
@@ -134,11 +138,15 @@ scene.assets.add('video', { // tag, attributes
     playsinline: 'true',
 });
 ```
-or add id to tag
+
+- or add id to tag
 ```
 scene.assets.add('a-asset-item#parrot', '../models/parrot.glb'); // (tag#id, src), #id is optional
 ```
-or add many assets at the same times```
+
+- or add many assets at the same times
+
+```
 var assets = {
     'img#texture1': './imgs/texture1.jpg',
     'img#texture2': './imgs/texture2.jpg',
@@ -184,3 +192,7 @@ AFRAME.createAScene({
 });
 AFRAME.loadScene('scene1'); // load the scene
 ```
+
+There are two way to define the default scene.
+1. set default scene by code: AFRAME.loadScene('scene1');
+2. set default scene as a attribute in body tag: <body scene="scene1">...</body>
