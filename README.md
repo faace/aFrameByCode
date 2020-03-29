@@ -9,6 +9,7 @@ A-Frame-By-Code is an extension of A-Frame. You can use A-Frame as before, and y
 - use code to realise anything easily, such a template entity, grid or some kind of layout
 
 A full example is [HERE](https://faace.github.io/aFrameByCode)
+
 ![a full example](https://faace.github.io/aFrameByCode/imgs/fullExample.gif "a full example")
 
 ## define a scene
