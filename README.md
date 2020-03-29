@@ -8,7 +8,14 @@ A-Frame-By-Code is an extension of A-Frame. You can use A-Frame as before, and y
 - use code to switch multiple scenes
 - use code to realise anything easily, such a template entity, grid or some kind of layout
 
-A full example is [HERE](https://faace.github.io/aFrameByCode)
+## how to use
+Add the script after aframe.min.js
+```
+<script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
+<script src="https://faace.github.io/aFrameByCode/dist/aFrameByCode.min.js"></script>
+```
+## A full exmaple
+The link is [HERE](https://faace.github.io/aFrameByCode)
 
 ![a full example](https://faace.github.io/aFrameByCode/imgs/fullExample.gif "a full example")
 
