@@ -194,7 +194,5 @@ AFRAME.loadScene('scene1'); // load the scene
 ```
 
 There are two way to define the default scene.
-- set default scene by code: 
-`AFRAME.loadScene('scene1');`
-- set default scene as a attribute in body tag: 
-`<body scene="scene1">...</body>`
+- set default scene by code: `AFRAME.loadScene('scene1');`
+- set default scene as a attribute in body tag: `<body scene="scene1">...</body>`
