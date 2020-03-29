@@ -8,7 +8,8 @@ A-Frame-By-Code is an extension of A-Frame. You can use A-Frame as before, and y
 - use code to switch multiple scenes
 - use code to realise anything easily, such a template entity, grid or some kind of layout
 
-A full exmple is [HERE](https://faace.github.io/aFrameByCode)
+A full example is [HERE](https://faace.github.io/aFrameByCode)
+![a full example](https://faace.github.io/aFrameByCode/imgs/fullExample.gif "a full example")
 
 ## define a scene
 Below is the code of defining a scene.
@@ -31,6 +32,7 @@ AFRAME.createAScene({
 });
 ```
 An example is:  [Open this link to see the result.](https://faace.github.io/aFrameByCode/demo.html) 
+
 ```
 <!DOCTYPE html>
 <html lang="en">
@@ -63,6 +65,8 @@ An example is:  [Open this link to see the result.](https://faace.github.io/aFra
 
 </html>
 ```
+![create a scene by code](https://faace.github.io/aFrameByCode/imgs/screenShot.jpg "create a scene by code")
+
 
 ## Add entities in function onInit
 Usually we add default entities in the onInit function when create a scene. Of course, we can add entities at any time and anywhere, we can also add entities in a component.

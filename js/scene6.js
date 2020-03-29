@@ -14,7 +14,7 @@ AFRAME.createAScene({
     },
     onInit: function (scene) {
         // 1. add the glb asset
-        scene.assets.add('a-asset-item#parrot', '../models/parrot.glb');
+        scene.assets.add('a-asset-item#parrot', './models/parrot.glb');
 
         // 2. add the entity
         this.parrot = scene.addAnEntity('a-entity', {
@@ -51,7 +51,7 @@ AFRAME.createAScene({
     onLoaded: function () {
         var scene = AFRAME.extCurrScene;
         var assets = scene.assets;
-        assets.add('a-asset-item#flamingo', '../models/flamingo.glb').load(function () {
+        assets.add('a-asset-item#flamingo', './models/flamingo.glb').load(function () {
             scene.addAnEntity('a-entity', {
                 'gltf-model': '#flamingo',
                 'f-model-animations': 'clip:KeyAction',
@@ -61,7 +61,7 @@ AFRAME.createAScene({
             })
         });
 
-        assets.add('a-asset-item#stork', '../models/stork.glb').load(function () {
+        assets.add('a-asset-item#stork', './models/stork.glb').load(function () {
             scene.addAnEntity('a-entity', {
                 'gltf-model': '#stork',
                 'f-model-animations': 'clip:KeyAction',
