@@ -11,7 +11,7 @@ A-Frame-By-Code是A-Frame的壹個擴展，通過它，妳可以：
 *其他語言選擇：[English](README.md)，[简体中文](README.zh-cn.md)，[正體中文](README.zh-tw.md).*
 
 ## 如何使用
-只要把庫在aframe.min.js之後引用即可：
+只要在aframe.min.js之後引用本庫即可：
 ```
 <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
 <script src="https://faace.github.io/aFrameByCode/dist/aFrameByCode.min.js"></script>
@@ -131,16 +131,16 @@ scene.addEntities({
 - 直接添加html格式的實體
 ```
 scene.addEntities(`
-<a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
-<a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E"></a-sphere>
-<a-cylinder position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder>
-<a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
-<a-sky color="#ECECEC"></a-sky>
+    <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
+    <a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E"></a-sphere>
+    <a-cylinder position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder>
+    <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
+    <a-sky color="#ECECEC"></a-sky>
 `);
 ```
 
 ## 處理資源
-資源會隨著場景的插件而創建踹。
+資源會隨著場景的創建而創建。
 - 我們可以通過scene.assets來使用資源的相關功能。
 ```
 scene.assets.add('video', { // tag, attributes
@@ -207,6 +207,6 @@ AFRAME.createAScene({
 AFRAME.loadScene('scene1'); // load the scene
 ```
 
-網頁打開的時候，需要制定默認場景，這裏有兩種方式來定義默認場景：
+網頁打開的時候，需要指定默認場景，這裏有兩種方式來定義默認場景：
 - 代碼方式：`AFRAME.loadScene('scene1');`
 - 標簽方式：`<body scene="scene1">...</body>`
