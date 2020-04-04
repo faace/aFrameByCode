@@ -1,28 +1,28 @@
 # aFrameByCode
-A way to use A-Frame all by js code.
-A-Frame is an excellent web framework for building VR experiences. 
-As we know, the common way to build 3d objects is using html language to define scene and entities. But in this way, it is not so convenient to add/remove 3d objects. In order to control 3d objects and scene more easily, A-Frame-By-Code comes out.
-A-Frame-By-Code is an extension of A-Frame. You can use A-Frame as before, and you can also : 
-- use code to add and remove an entity to another antity
-- use code to add assets whenever you want
-- use code to switch multiple scenes
-- use code to realise anything easily, such a template entity, grid or some kind of layout
+通過純JS代碼的方式去使用A-Frame。
+A-Frame是個非常棒的WebVR構建框架。基於這個框架，我們可以通過標準的HTML標簽和屬性就可以定義場景，實體和對應的屬性。不過，通過這種方式，在控制3D模型的時候非常不方便。
+A-Frame-By-Code將提供通過JS代碼的方式去構建場景和控制3d物體。
+A-Frame-By-Code是A-Frame的壹個擴展，通過它，妳可以：
+- 通過代碼的方式，從壹個實體中添加或者移除另外壹個實體
+- 通過代碼的方式，可以隨時添加資源
+- 支持多場景切換
+- 通過代碼，可以更加輕松的實現模板功能，布局功能等
 
-*Read this in other languages: [English](README.md), [简体中文](README.zh-cn.md), [正體中文](README.zh-tw.md).*
+*其他語言選擇：[English](README.md)，[简体中文](README.zh-cn.md)，[正體中文](README.zh-tw.md).*
 
-## how to use
-Add the script after aframe.min.js
+## 如何使用
+只要把庫在aframe.min.js之後引用即可：
 ```
 <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
 <script src="https://faace.github.io/aFrameByCode/dist/aFrameByCode.min.js"></script>
 ```
-## A full exmaple
-The link is [HERE](https://faace.github.io/aFrameByCode).
+## 壹個完整的示例
+請點擊[這個鏈接](https://faace.github.io/aFrameByCode)。
 
-![a full example](https://faace.github.io/aFrameByCode/imgs/fullExample.gif "a full example")
+![壹個完整的示例](https://faace.github.io/aFrameByCode/imgs/fullExample.gif "壹個完整的示例")
 
-## define a scene
-Below is the code of defining a scene.
+## 定義壹個場景
+直接上代碼：
 ```
 AFRAME.createAScene({
     id: 'scene1', // scene's id
@@ -41,7 +41,7 @@ AFRAME.createAScene({
     }
 });
 ```
-An example is:  [Open this link to see the result.](https://faace.github.io/aFrameByCode/demo.html) 
+[這裏](https://faace.github.io/aFrameByCode/demo.html) 可以查看壹個簡單的例子。
 
 ```
 <!DOCTYPE html>
@@ -75,20 +75,20 @@ An example is:  [Open this link to see the result.](https://faace.github.io/aFra
 
 </html>
 ```
-![create a scene by code](https://faace.github.io/aFrameByCode/imgs/screenShot.jpg "create a scene by code")
+![通過代碼產生壹個場景](https://faace.github.io/aFrameByCode/imgs/screenShot.jpg "通過代碼產生壹個場景")
 
 
-## Add entities in function onInit
-Usually we add default entities in the onInit function when create a scene. Of course, we can add entities at any time and anywhere, we can also add entities in a component.
-There are many ways to add entities to the scene or another entities.
-- add an entity in a simple way
+## 在場景的初始化函數onInit中添加實體
+通常，我們會把默認的實體放在場景的初始化函數onInit中創建。當然，也可以在後期的任何時候，任何地方（例如component組件中）來添加實體。
+添加實體有多種方式：
+- 最簡單的添加方式
 ```
 scene.addAnEntity('a-box', {
     position: '0 1 -3',
 });
 ```
 
-- add with an object
+- 通過壹個對象添加
 ```
 scene.addAnEntity({
     tag: 'a-box',
@@ -99,7 +99,7 @@ scene.addAnEntity({
 });
 ```
 
-- add with an id
+- 添加實體的時候，順便指定id
 ```
 scene.addAnEntity({
     tag: 'a-box@box1', // the string after # of the value is its id
@@ -110,7 +110,7 @@ scene.addAnEntity({
 });
 ```
 
-- add many entities at the same time
+- 壹次性添加多個實體
 ```
 scene.addEntities({
     'a-box': {
@@ -128,9 +128,9 @@ scene.addEntities({
 });
 ```
 
-## handle assets
-A-assets will be added to the scene by default.
-- We can use it by scene.assets
+## 處理資源
+資源會隨著場景的插件而創建踹。
+- 我們可以通過scene.assets來使用資源的相關功能。
 ```
 scene.assets.add('video', { // tag, attributes
     id: 'v',
@@ -141,12 +141,12 @@ scene.assets.add('video', { // tag, attributes
 });
 ```
 
-- or add id to tag
+- 給資源添加tag和id
 ```
 scene.assets.add('a-asset-item#parrot', '../models/parrot.glb'); // (tag#id, src), #id is optional
 ```
 
-- or add many assets at the same times
+- 壹次性添加多個資源
 
 ```
 var assets = {
@@ -156,8 +156,8 @@ var assets = {
 scene.assets.addList(assets);
 ```
 
-If we add assets to scene.assets in function onInit, we do not need to call load function of assets.
-Buf if we add assets after the scene is loaded, we need to call load function by code.
+如果我們是在onInit函數中通過scene.assets來添加資源，那麽我們是不需要調用load函數來正真加載。
+但是，如果我們在其他地方添加資源，那麽就需要我們自己調用load函數。
 ```
 var scene = AFRAME.extCurrScene;
 var assets = scene.assets;
@@ -166,9 +166,10 @@ assets.add('a-asset-item#stork', '../models/stork.glb').load(function () {
 });
 ```
 
-## multiple scenes
-Multiple scenes can be defined at the same time.
-And we can change from one scene to another by the component 'f-click-to-scene' or using code AFRAME.loadScene.
+## 多場景應用
+多個場景可以同時定好，也可以在後期需要的時候動態定義。
+接著，我們可以通過組件'f-click-to-scene'或者使用AFRAME.loadScene來切換場景。
+註意：定義場景的時候並不會記載資源，只有在loadScene的時候才會正真加載資源
 
 ```
 AFRAME.createAScene({
@@ -195,6 +196,6 @@ AFRAME.createAScene({
 AFRAME.loadScene('scene1'); // load the scene
 ```
 
-There are two way to define the default scene.
-- set default scene by code: `AFRAME.loadScene('scene1');`
-- set default scene as a attribute in body tag: `<body scene="scene1">...</body>`
+網頁打開的時候，需要制定默認場景，這裏有兩種方式來定義默認場景：
+- 代碼方式：`AFRAME.loadScene('scene1');`
+- 標簽方式：`<body scene="scene1">...</body>`
