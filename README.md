@@ -1,5 +1,5 @@
 # aFrameByCode
-A way to use A-Frame all by js code.
+A way to use A-Frame all by javascript code.
 A-Frame is an excellent web framework for building VR experiences. 
 As we know, the common way to build 3d objects is using html language to define scene and entities. But in this way, it is not so convenient to add/remove 3d objects. In order to control 3d objects and scene more easily, A-Frame-By-Code comes out.
 A-Frame-By-Code is an extension of A-Frame. You can use A-Frame as before, and you can also : 
@@ -10,7 +10,7 @@ A-Frame-By-Code is an extension of A-Frame. You can use A-Frame as before, and y
 
 *Read this in other languages: [English](README.md), [简体中文](README.zh-cn.md), [正體中文](README.zh-tw.md).*
 
-## how to use
+## How to use
 Add the script after aframe.min.js
 ```
 <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
@@ -21,7 +21,7 @@ The link is [HERE](https://faace.github.io/aFrameByCode).
 
 ![a full example](https://faace.github.io/aFrameByCode/imgs/fullExample.gif "a full example")
 
-## define a scene
+## Define a scene
 Below is the code of defining a scene.
 ```
 AFRAME.createAScene({
@@ -128,7 +128,18 @@ scene.addEntities({
 });
 ```
 
-## handle assets
+- add many entities by html
+```
+scene.addEntities(`
+<a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
+<a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E"></a-sphere>
+<a-cylinder position="1 0.75 -3" radius="0.5" height="1.5" color="#FFC65D"></a-cylinder>
+<a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4"></a-plane>
+<a-sky color="#ECECEC"></a-sky>
+`);
+```
+
+## Handle assets
 A-assets will be added to the scene by default.
 - We can use it by scene.assets
 ```
@@ -166,7 +177,7 @@ assets.add('a-asset-item#stork', '../models/stork.glb').load(function () {
 });
 ```
 
-## multiple scenes
+## Multiple scenes
 Multiple scenes can be defined at the same time.
 And we can change from one scene to another by the component 'f-click-to-scene' or using code AFRAME.loadScene.
 

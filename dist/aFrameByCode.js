@@ -84,6 +84,38 @@
 
         return newObj;
     };
+    var parseHtml = function (html) {
+        var div = document.createElement('div');
+        div.innerHTML = (html || '').replace(/\n/g, '').replace(/\s+/g, ' ').replace(/^\s*/, '').replace(/\s*$/, '').replace(/>\s*</g, '><');
+
+        var getAllEntities = function (el, entities) {
+            var entity = { tag: el.localName };
+            entities.push(entity);
+
+            if (el.attributes.length > 0) {
+                var attributes = entity.attributes = {};
+                for (var j = 0; j < el.attributes.length; j++) {
+                    attributes[el.attributes[j].name] = el.attributes[j].value;
+                }
+            }
+
+            if (el.children.length > 0) {
+                var children = entity.children = [];
+                for (var i = 0; i < el.children.length; i++) {
+                    getAllEntities(el.children[i], children);
+                }
+            }
+        };
+
+        var entities = [];
+        try {
+            getAllEntities(div, entities);
+        } catch (error) {
+            console.log('err html', error)
+        }
+
+        return (entities[0] && entities[0].children) || [];
+    }
     var addAnEntity = function () {
         var parm = standardEntiyParm.apply(standardEntiyParm, arguments);
         return this.createAnEntity(parm, this)
@@ -96,6 +128,9 @@
                 el = this.createAnEntity(list[i], this);
                 cb && cb(el);
             }
+        } else if (typeof list == 'string') {
+            var entities = parseHtml(list);
+            addEntities.bind(this)(entities, cb);
         } else { // 对象方式，这个时候，可能有id做标签
             for (var tag in list) {
                 el = this.addAnEntity(tag, list[tag]); // this is for el
