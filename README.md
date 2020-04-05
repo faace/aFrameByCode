@@ -3,7 +3,7 @@ A way to use A-Frame all by javascript code.
 A-Frame is an excellent web framework for building VR experiences. 
 As we know, the common way to build 3d objects is using html language to define scene and entities. But in this way, it is not so convenient to add/remove 3d objects. In order to control 3d objects and scene more easily, A-Frame-By-Code comes out.
 A-Frame-By-Code is an extension of A-Frame. You can use A-Frame as before, and you can also : 
-- use code to add and remove an entity to another antity
+- use code to add/remove an entity to/from another antity
 - use code to add assets whenever you want
 - use code to switch multiple scenes
 - use code to realise anything easily, such a template entity, grid or some kind of layout

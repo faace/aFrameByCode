@@ -169,7 +169,8 @@
     };
     var removeMe = function () {
         this.onRemove && this.onRemove();
-        this.parentNode.removeChild(this);
+        delete this.onRemove;
+        this.parentNode && this.parentNode.removeChild(this);
     };
 
     var setAttributes = function (el, attributes) {
