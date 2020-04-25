@@ -174,6 +174,7 @@
     };
 
     var setAttributes = function (el, attributes) {
+        if (typeof attributes == 'function') attributes = attributes();
         if (attributes) {
             for (var i in attributes) {
                 el.setAttribute(i, attributes[i] || '');
@@ -218,6 +219,7 @@
 
         // 2. set attributes, assets and chilren
         var attributes = parm.attributes || {};
+        if (typeof attributes == 'function') attributes = attributes();
         attributes.id = sceneId;
         setAttributes(el, attributes);
 
