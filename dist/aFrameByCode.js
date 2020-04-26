@@ -217,21 +217,27 @@
         if (parm.onRemove) el.onRemove = parm.onRemove.bind(parm);
         this.extCurrScene = el;
 
-        // 2. set attributes, assets and chilren
+        // 2. set attributes
         var attributes = parm.attributes || {};
         if (typeof attributes == 'function') attributes = attributes();
         attributes.id = sceneId;
         setAttributes(el, attributes);
 
+        // 3. add assets
         el.addAnEntity('a-assets', { id: 'assets' });
         el.assets = new Assets('#assets');
+        // auto add the default assets
+        var assets = parm.assets || {};
+        if (typeof assets == 'function') assets = assets();
+        el.assets.addList(assets);
 
+        // 4 add children
         el.addEntities(parm.children)
 
-        // 3. call onInit functoin to add other entities
+        // 5. call onInit functoin to add other entities
         if (parm.onInit) parm.onInit.bind(parm)(el);
 
-        // 4. waiting all assets are loaded
+        // 6. waiting all assets are loaded
         el.assets.load(function () { // need to check where all things are loaded
             var run = function () {
                 parm.onLoaded && parm.onLoaded.bind(parm)(el);
@@ -285,6 +291,8 @@
         return this;
     };
     Assets.prototype.addList = function (list) {
+        if (!list) return;
+
         if (Array.isArray(list)) {
             for (var i = 0; i < list.length; i++) {
                 this.add(list[i]);

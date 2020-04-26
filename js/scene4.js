@@ -13,6 +13,10 @@ AFRAME.createAScene({
             }
         }
     },
+    assets: { // can be defined by this way
+        'img#texture1': './imgs/texture1.jpg', // the string after # of the key is its id
+        'img#texture2': './imgs/texture2.jpg',
+    },
     getTemplate: function (x, y, src) {
         var tpl = {
             tag: 'a-box',
@@ -25,14 +29,7 @@ AFRAME.createAScene({
         return tpl;
     },
     onInit: function (scene) { // create anything in the functions
-        // 1 create some assets
-        var assets = {
-            'img#texture1': './imgs/texture1.jpg', // the string after # of the key is its id
-            'img#texture2': './imgs/texture2.jpg',
-        };
-        scene.assets.addList(assets);
-
-        // 2. add some entities by a template
+        // 1. add some entities by a template
         var textures = [assets['img#texture1'], assets['img#texture2']];
         for (var y = -0.5; y < 1; y += 0.5) {
             for (var x = -1; x < 2; x++) {
