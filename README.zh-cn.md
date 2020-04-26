@@ -141,7 +141,21 @@ scene.addEntities(`
 
 ## 处理资源
 资源会随着场景的创建而创建。
-- 我们可以通过scene.assets来使用资源的相关功能。
+- 我们可以在定义场景的时候同时定义需要加载的资源
+```
+AFRAME.createAScene({
+    id: 'scene4',
+    assets: {
+        'img#texture1': './imgs/texture1.jpg',
+        'a-asset-item#parrot': './models/parrot.glb',
+    },
+    onInit: function (scene) {
+        // ...
+    },
+});
+```
+
+- 我们可以通过scene.assets来使用资源的相关功能
 ```
 scene.assets.add('video', { // tag, attributes
     id: 'v',

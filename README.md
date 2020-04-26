@@ -141,6 +141,20 @@ scene.addEntities(`
 
 ## Handle assets
 A-assets will be added to the scene by default.
+- We can define assets as the key value when define the screne
+```
+AFRAME.createAScene({
+    id: 'scene4',
+    assets: {
+        'img#texture1': './imgs/texture1.jpg',
+        'a-asset-item#parrot': './models/parrot.glb',
+    },
+    onInit: function (scene) {
+        // ...
+    },
+});
+```
+
 - We can use it by scene.assets
 ```
 scene.assets.add('video', { // tag, attributes
