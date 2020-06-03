@@ -79,7 +79,7 @@ An example is:  [Open this link to see the result.](https://faace.github.io/aFra
 
 
 ## Add entities in function onInit
-Usually we add default entities in the onInit function when create a scene. Of course, we can add entities at any time and anywhere, we can also add entities in a component.
+Usually we add default entities in the onInit function when creating a scene. Of course, we can add entities at any time and anywhere, we can also add entities in a component.
 There are many ways to add entities to the scene or another entities.
 - add an entity in a simple way
 ```
@@ -102,7 +102,7 @@ scene.addAnEntity({
 - add with an id
 ```
 scene.addAnEntity({
-    tag: 'a-box@box1', // the string after # of the value is its id
+    tag: 'a-box#box1', // the string after # of the value is its id
     attibutes: {
         position: '0 1 -3',
         color: 'blue',
@@ -117,11 +117,11 @@ scene.addEntities({
         position: '-1 1 -3',
         color: 'blue',
     },
-     'a-box@box2': {
+     'a-box#box2': {
         position: '0 1 -3',
         color: 'red',
     },
-     'a-box@box3': {
+     'a-box#box3': {
         position: '1 1 -3',
         color: 'blue',
     }
