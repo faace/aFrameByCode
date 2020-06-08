@@ -102,7 +102,7 @@ scene.addAnEntity({
 - 添加實體的時候，順便指定id
 ```
 scene.addAnEntity({
-    tag: 'a-box@box1', // the string after # of the value is its id
+    tag: 'a-box#box1', // the string after # of the value is its id
     attibutes: {
         position: '0 1 -3',
         color: 'blue',
@@ -117,11 +117,11 @@ scene.addEntities({
         position: '-1 1 -3',
         color: 'blue',
     },
-     'a-box@box2': {
+     'a-box#box2': {
         position: '0 1 -3',
         color: 'red',
     },
-     'a-box@box3': {
+     'a-box#box3': {
         position: '1 1 -3',
         color: 'blue',
     }
