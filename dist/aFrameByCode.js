@@ -1,3 +1,8 @@
+// name: aFrameByCode
+// author: Faace Yu
+// version: 1.1.0
+// github: https://github.com/faace/aFrameByCode
+
 (function (g) {
     AFRAME.$ = $ = document.querySelector.bind(document); // for id
     AFRAME.$$ = $$ = document.querySelectorAll.bind(document); // for class
@@ -191,7 +196,9 @@
         el.removeMe = removeMe.bind(el);
         el.setAttributes = function (attributes) {
             setAttributes(el, attributes);
-        }
+        };
+
+        el.run = Anim.run.bind(el);
         return el;
     };
 
@@ -348,4 +355,347 @@
 
     }, false);
 
+
+    // for animation =========================
+    AFRAME.registerSystem('afbcAnim', {
+        init: function () {
+            this.list = [];
+        },
+        addAnim: function (idx, anim) {
+            this.list.push({ idx: idx, anim: anim });
+        },
+        removeAnim: function (idx) {
+            for (var i = 0; i < this.list.length; i++) {
+                if (this.list[i].idx == idx) {
+                    this.list.splice(i, 1);
+                }
+            }
+        },
+        tick: (function () {
+            var i, len;
+            return function (ms) {
+                if (this.list.length) {
+                    for (i = this.list.length - 1; i > -1; i--) this.list[i].anim.tick(ms);
+                }
+            }
+        })(),
+    });
+
+
+    var Anim = function () { this.conf = null; };
+    AFRAME.anim = function () { return new Anim(); };
+
+    AnimRealRun = function (conf, cb) {
+        if (conf.repeat > -1 && conf.currRepeat >= conf.repeat) {
+            conf.currRepeat = 0;
+            return cb && cb(); // 循环结束了
+        }
+        var realRun = AnimRealRun.bind(this);
+        var system = this.sceneEl.systems['afbcAnim'];
+
+        conf.currRepeat++;
+        switch (conf.type) {
+            case 'sequence': {
+                if (typeof conf.sequenceIdx == 'undefined') conf.sequenceIdx = 0;
+                var aConf = conf.sequence[conf.sequenceIdx];
+                conf.sequenceIdx++;
+                if (aConf) {
+                    conf.currRepeat--;
+                    aConf.currRepeat = 0;
+                    realRun(aConf, function () {
+                        realRun(conf, cb);
+                    });
+                } else {
+                    conf.sequenceIdx = 0;
+                    realRun(conf, cb);
+                }
+                break;
+            }
+            case 'spawn': {
+                var callback = afterAllCallback(conf.spawn.length, function () {
+                    realRun(conf, cb);
+                });
+                for (var i = 0; i < conf.spawn.length; i++) {
+                    conf.spawn[i].currRepeat = 0;
+                    realRun(conf.spawn[i], callback);
+                }
+                break;
+            }
+            case 'cb': {
+                conf.currRepeat = 0;
+                conf.cb && conf.cb.bind(conf.taget)();
+                cb && cb();
+                break;
+            }
+            case 'delay': {
+                setTimeout(function () {
+                    conf.currRepeat = 0;
+                    cb && cb();
+                }, conf.delay);
+                break;
+            }
+            case 'fadeOut':
+            case 'fadeIn':
+            case 'fadeTo': {
+                var idx = Date.now() + Math.round(10000 * Math.random());
+                var config = conf.getConfig();
+
+                // opacity need transparent is set to true;
+                var m = (this.object3DMap && this.object3DMap.mesh && this.object3DMap.mesh.material) || (this.components && this.components.material && this.components.material.material);
+                if (!m) return cb && cb();
+
+                if (Array.isArray(m)) m.forEach(function (one) { one.transparent = true; })
+                else m.transparent = true;
+
+                var from = conf.from, to = conf.to;
+                if (typeof from == 'undefined') from = Array.isArray(m) ? m[0].opacity : m.opacity;
+
+
+                config.opacity = [from, to];
+                config.targets = m;
+                config.complete = function () {
+                    system.removeAnim(idx);
+                    conf.currRepeat = 0;
+                    cb && cb();
+                };
+
+                system.addAnim(idx, AFRAME.ANIME(config));
+                break;
+            }
+            case 'move':
+            case 'moveTo':
+            case 'moveBy': {
+                var idx = Date.now() + Math.round(10000 * Math.random());
+                var config = conf.getConfig();
+
+                // opacity need transparent is set to true;
+                var t = this.object3D && this.object3D.position;
+                if (!t) return cb && cb();
+
+                var from = conf.from && new THREE.Vector3().copy(conf.from), to = conf.to && new THREE.Vector3().copy(conf.to);
+                if (!from) from = new THREE.Vector3().copy(t);
+                if (!to) to = new THREE.Vector3().copy(t).add(conf.by);
+
+                config.x = [from.x, to.x];
+                config.y = [from.y, to.y];
+                config.z = [from.z, to.z];
+
+
+                config.targets = t;
+                config.complete = function () {
+                    system.removeAnim(idx);
+                    conf.currRepeat = 0;
+                    cb && cb();
+                };
+
+                system.addAnim(idx, AFRAME.ANIME(config));
+                break;
+            }
+            case 'scale':
+            case 'scaleTo':
+            case 'scaleBy': {
+                var idx = Date.now() + Math.round(10000 * Math.random());
+                var config = conf.getConfig();
+
+                // opacity need transparent is set to true;
+                var t = this.object3D && this.object3D.scale;
+                if (!t) return cb && cb();
+
+                var from = conf.from && new THREE.Vector3().copy(conf.from), to = conf.to && new THREE.Vector3().copy(conf.to);
+                if (!from) from = new THREE.Vector3().copy(t);
+                if (!to) to = new THREE.Vector3().copy(t).add(conf.by);
+
+                config.x = [from.x, to.x];
+                config.y = [from.y, to.y];
+                config.z = [from.z, to.z];
+
+
+                config.targets = t;
+                config.complete = function () {
+                    system.removeAnim(idx);
+                    conf.currRepeat = 0;
+                    cb && cb();
+                };
+
+                system.addAnim(idx, AFRAME.ANIME(config));
+                break;
+            }
+            case 'rotation':
+            case 'rotationTo':
+            case 'rotationBy': {
+                var idx = Date.now() + Math.round(10000 * Math.random());
+                var config = conf.getConfig();
+
+                // opacity need transparent is set to true;
+                var t = this.object3D && this.object3D.rotation;
+                if (!t) return cb && cb();
+
+                var from = conf.from && new THREE.Vector3().copy(conf.from), to = conf.to && new THREE.Vector3().copy(conf.to);
+                if (!from) from = new THREE.Vector3().copy(t);
+                if (!to) to = new THREE.Vector3().copy(t).add(conf.by);
+
+                config.x = [from.x, to.x];
+                config.y = [from.y, to.y];
+                config.z = [from.z, to.z];
+
+
+                config.targets = t;
+                config.complete = function () {
+                    system.removeAnim(idx);
+                    conf.currRepeat = 0;
+                    cb && cb();
+                };
+
+                system.addAnim(idx, AFRAME.ANIME(config));
+                break;
+            }
+        }
+
+
+    };
+    Anim.run = function (anim) { // this is el;
+        var currConf = anim.conf;
+        currConf.currRepeat = 0;
+
+        AnimRealRun.bind(this)(currConf);
+    };
+
+    Anim.prototype.fadeOut = function (dur) {
+        return this.conf = new Conf().setDuration(dur).setFrom(1).setTo(0).setType('fadeOut');
+    };
+    Anim.prototype.fadeIn = function (dur) {
+        return this.conf = new Conf().setDuration(dur).setFrom(0).setTo(1).setType('fadeIn');
+    };
+    Anim.prototype.move = function (dur, from, to) {
+        return this.conf = new Conf().setDuration(dur).setFrom(from).setTo(to).setType('move');
+    };
+    Anim.prototype.moveTo = function (dur, to) {
+        return this.conf = new Conf().setDuration(dur).setTo(to).setType('moveTo');
+    };
+    Anim.prototype.moveBy = function (dur, by) {
+        return this.conf = new Conf().setDuration(dur).setBy(by).setType('moveBy');
+    };
+    Anim.prototype.scale = function (dur, from, to) {
+        return this.conf = new Conf().setDuration(dur).setFrom(from).setTo(to).setType('scale');
+    };
+    Anim.prototype.scaleTo = function (dur, to) {
+        return this.conf = new Conf().setDuration(dur).setTo(to).setType('scaleTo');
+    };
+    Anim.prototype.scaleBy = function (dur, by) {
+        return this.conf = new Conf().setDuration(dur).setBy(by).setType('scaleBy');
+    };
+    var deg2Rad = Math.PI / 180;
+    Anim.prototype.rotation = function (dur, from, to) {
+
+        from = { x: from.x * deg2Rad, y: from.y * deg2Rad, z: from.z * deg2Rad };
+        to = { x: to.x * deg2Rad, y: to.y * deg2Rad, z: to.z * deg2Rad };
+        return this.conf = new Conf().setDuration(dur).setFrom(from).setTo(to).setType('rotation');
+    };
+    Anim.prototype.rotationTo = function (dur, to) {
+        to = { x: to.x * deg2Rad, y: to.y * deg2Rad, z: to.z * deg2Rad };
+        return this.conf = new Conf().setDuration(dur).setTo(to).setType('rotationTo');
+    };
+    Anim.prototype.rotationBy = function (dur, by) {
+        by = { x: by.x * deg2Rad, y: by.y * deg2Rad, z: by.z * deg2Rad };
+        return this.conf = new Conf().setDuration(dur).setBy(by).setType('rotationBy');
+    };
+    Anim.prototype.cb = function (cb, target) {
+        return this.conf = new Conf().setCb(cb, target).setType('cb');
+    };
+    Anim.prototype.delay = function (s) {
+        return this.conf = new Conf().setDelay(s).setType('delay');
+    };
+    Anim.prototype.sequence = function () {
+        return this.conf = new Conf().setSequence(arguments).setType('sequence');
+    };
+    Anim.prototype.spawn = function () {
+        return this.conf = new Conf().setSpawn(arguments).setType('spawn');
+    };
+
+    Anim.prototype.tick = function (dms) {
+        if (!this.isPlaying) return;
+        this.time += dms;
+        this.animation.tick(this.time);
+    };
+
+    var Conf = function (conf) {
+        this.repeat = 1;
+        // this.type;
+        // this.duration;
+        // this.from;
+        // this.to;
+        // this.by;
+        // this.cb;
+        // this.repeat
+        // this.currRepeat
+        // this.sequence
+        // this.sequenceIdx
+        // this.conf = conf;
+    };
+    Conf.prototype.getConfig = function () {
+        var config = {
+            autoplay: false,
+            direction: 'normal',
+            duration: 1000, // dur;
+            easing: 'easeInOutQuad',
+            elasticity: 400,
+            loop: 0,
+            round: false,
+        };
+        for (var i in config) {
+            if (typeof this[i] != 'undefined') config[i] = this[i];
+        }
+        return config;
+    };
+    Conf.prototype.setType = function (type) {
+        this.type = type;
+        return this;
+    };
+    Conf.prototype.setDuration = function (ms) {
+        this.duration = parseInt(ms);
+        return this;
+    };
+    Conf.prototype.setFrom = function (from) {
+        this.from = from;
+        return this;
+    };
+    Conf.prototype.setTo = function (to) {
+        this.to = to;
+        return this;
+    };
+    Conf.prototype.setBy = function (by) {
+        this.by = by;
+        return this;
+    };
+    Conf.prototype.setCb = function (cb, taget) {
+        this.cb = cb;
+        this.taget = taget;
+        return this;
+    };
+    Conf.prototype.setDelay = function (s) {
+        this.delay = s;
+        return this;
+    };
+    Conf.prototype.setSequence = function (list) {
+        var sequence = this.sequence = [];
+        for (var i = 0; i < list.length; i++) {
+            sequence.push(list[i]);
+        }
+        return this;
+    };
+    Conf.prototype.setSpawn = function (list) {
+        var spawn = this.spawn = [];
+        for (var i = 0; i < list.length; i++) {
+            spawn.push(list[i]);
+        }
+        return this;
+    };
+    Conf.prototype.setRepeat = function (num) {
+        this.repeat = num;
+        return this;
+    };
+    Conf.prototype.setRepeatForever = function () {
+        this.repeat = -1;
+        return this;
+    };
 })(window);
