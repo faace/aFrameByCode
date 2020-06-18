@@ -7,6 +7,7 @@ A-Frame-By-Code is an extension of A-Frame. You can use A-Frame as before, and y
 - use code to add assets whenever you want
 - use code to switch multiple scenes
 - use code to realise anything easily, such a template entity, grid or some kind of layout
+- **use code to animate an entity by any move/rotation/scale/color/fade action**
 
 *Read this in other languages: [English](README.md), [简体中文](README.zh-cn.md), [正體中文](README.zh-tw.md).*
 
@@ -223,3 +224,73 @@ AFRAME.loadScene('scene1'); // load the scene
 There are two ways to define the default scene.
 - set default scene by code: `AFRAME.loadScene('scene1');`
 - set default scene as an attribute in body tag: `<body scene="scene1">...</body>`
+
+## Animation
+Animations are supported, and all of them can be combined to use.
+One Animation can be applied many times.
+One Animation can be applied to many entities at the same time.
+Multi animations can be applied to a single entity once.
+
+The animations are list below:
+- fadeOut/fadeIn/fadeTo: change the opacity
+- move/moveTo/moveBy: change the position
+- scale/scaleTo/ScaleBy: change the scale
+- rotation/rotationTo/rotationBy: change the rotation
+- color/colorTo/colorBy: change the color
+- delay: delay some ms
+- cb: run all callback function
+- sequence: let many animations run one by one
+- spawn: let many animations runn all together at the same time
+
+All animations can be set to repeat/repeatForever/reserve.
+
+The exmaple is [HERE](https://faace.github.io/aFrameByCode/anim.html).
+
+![an animation example](https://faace.github.io/aFrameByCode/imgs/anim.gif "an animation example")
+
+```
+var box = scene.addAnEntity('a-box', { position: "-1 0.5 -3", rotation: "0 45 0", color: "#4CC3D9" });
+var sphere = scene.addAnEntity('a-sphere', { position: "0 1.25 -5", radius: "1.25", color: "#EF2D5E" });
+var cylinder = scene.addAnEntity('a-cylinder', { position: "1 0.75 -3", radius: "0.5", height: "1.5", color: "#FFC65D" });
+var plane = scene.addAnEntity('a-plane', { position: "0 0 -4", rotation: "-90 0 0", width: "4", height: "4", color: "#7BC8A4" });
+var sky = scene.addAnEntity('a-sky', { color: "#ECECEC" });
+
+var anim1 = AFRAME.anim();
+anim1.sequence(
+    anim1.scale(1000, { x: 1, y: 1, z: 1 },{ x: 0.5, y: 0.5, z: 0.5 }),
+    anim1.scaleTo(1000, { x: 1, y: 1, z: 1 }),
+    anim1.scaleBy(1000, { x: 1, y: 0, z: 0 }),
+);
+cylinder.animRun(anim1);
+
+
+var anim2 = AFRAME.anim();
+anim2.sequence(
+    anim2.rotationBy(1000, { x: 45, y: 45, z: 45 }).repeat(2).reverse(),
+    anim2.fadeTo(1500, 0).repeat(2).reverse(),
+).repeatForever();
+cylinder.animRun(anim2);
+
+var anim3 = AFRAME.anim();
+anim3.sequence(
+    anim3.cb(function () {
+        console.log('start')
+    }),
+    anim3.moveTo(1000, { x: 1, y: 0.5, z: -3 }),
+    anim3.moveBy(1000, { x: 1, y: 1, z: -1 }).repeat(2).reverse(),
+    anim3.cb(function () {
+        console.log('end');
+        sphere.animRun(anim1);
+    }),
+    anim3.moveTo(1000, { x: -1, y: 0.5, z: -3 }),
+).repeatForever();
+box.animRun(anim3);
+
+var anim4 = AFRAME.anim();
+anim4.spawn(
+    anim4.colorBy(5000, { r: 100, g: 0, b: 0 }).repeatForever().reverse(),
+    anim4.rotationBy(1000, { x: 0, y: 360, z: 0 }).repeatForever(),
+);
+plane.animRun(anim4);
+```
+
