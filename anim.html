@@ -14,51 +14,51 @@
         AFRAME.createAScene({
             id: 'scene1',
             onInit: function (scene) {
-                // scene.addEntities({
-                //     'a-sphere': { position: "0 1.25 -5", radius: "1.25", color: "#EF2D5E" },
-                //     'a-cylinder': { position: "1 0.75 -3", radius: "0.5", height: "1.5", color: "#FFC65D" },
-                //     'a-plane': { position: "0 0 -4", rotation: "-90 0 0", width: "4", height: "4", color: "#7BC8A4" },
-                //     'a-sky': { color: "#ECECEC" },
-                // });
+                var box = scene.addAnEntity('a-box', { position: "-1 0.5 -3", rotation: "0 45 0", color: "#4CC3D9" });
+                var sphere = scene.addAnEntity('a-sphere', { position: "0 1.25 -5", radius: "1.25", color: "#EF2D5E" });
+                var cylinder = scene.addAnEntity('a-cylinder', { position: "1 0.75 -3", radius: "0.5", height: "1.5", color: "#FFC65D" });
+                var plane = scene.addAnEntity('a-plane', { position: "0 0 -4", rotation: "-90 0 0", width: "4", height: "4", color: "#7BC8A4" });
+                var sky = scene.addAnEntity('a-sky', { color: "#ECECEC" });
 
-                var box = window.aaa = scene.addAnEntity('a-box', { position: "-1 0.5 -3", rotation: "0 45 0", color: "#4CC3D9" });
-                // box.setAttribute('material', "opacity:1;transparent:true");
-                // var box = scene.addAnEntity('a-box', {});
-                setTimeout(() => {
-                    var anim = AFRAME.anim();
-                    // anim.fadeOut(1000);
-                    // anim.fadeIn(2000);
-                    anim.spawn(
-                        anim.sequence(
-                            // anim.delay(2000),
-                            // anim.fadeOut(1000),
-                            // anim.fadeIn(1000),
-                            anim.cb(function () {
-                                console.log('here');
-                            }),
-                            // anim.moveBy(1000, { x: 0, y: -1, z: 0 }),
-                        ),
-                        // anim.move(1000, { x: -1, y: 0.5, z: -3 }, { x: 1, y: 0.5, z: -3 }),
-                        // anim.moveBy(1000, { x: 0, y: 1, z: 0 }),
-                        anim.scaleBy(1000, { x: 1, y: 1, z: 1 }),
-                        anim.cb(function () {
-                            console.log('here2');
-                        }),
-                        // anim.rotationBy(1000, { x: 100, y: 100, z: 100 }),
-                    ).setRepeat(2)
-                    // anim.repeatForever(
-                    //     anim.sequence(
-                    //         anim.fadeOut(1000),
-                    //         anim.fadeIn(1000),
-                    //         anim.move(2000, { x: -1, y: 0.5, z: -3 }, { x: -1, y: 2.5, z: -3 }),
-                    //         anim.cb(cb),
-                    //     ));
-                    box.run(anim);
-                }, 1000);
+                var anim1 = AFRAME.anim();
+                anim1.sequence(
+                    anim1.scaleTo(1000, { x: 0.5, y: 0.5, z: 0.5 }),
+                    anim1.scaleTo(1000, { x: 1, y: 1, z: 1 }),
+                );
 
+                cylinder.animRun(anim1);
+
+
+                var anim2 = AFRAME.anim();
+                anim2.sequence(
+                    anim2.rotationBy(1000, { x: 45, y: 45, z: 45 }).repeat(2).reverse(),
+                    anim2.fadeTo(1500, 0).repeat(2).reverse(),
+                ).repeatForever();
+                cylinder.animRun(anim2);
+
+                var anim3 = AFRAME.anim();
+                anim3.sequence(
+                    anim3.cb(function () {
+                        console.log('start')
+                    }),
+                    anim3.moveTo(1000, { x: 1, y: 0.5, z: -3 }),
+                    anim3.moveBy(1000, { x: 1, y: 1, z: -1 }).repeat(2).reverse(),
+                    anim3.cb(function () {
+                        console.log('end');
+                        sphere.animRun(anim1);
+                    }),
+                    anim3.moveTo(1000, { x: -1, y: 0.5, z: -3 }),
+                ).repeatForever();
+                box.animRun(anim3);
+
+                var anim4 = AFRAME.anim();
+                anim4.spawn(
+                    anim4.colorBy(5000, { r: 100, g: 0, b: 0 }).repeatForever().reverse(),
+                    anim4.rotationBy(1000, { x: 0, y: 360, z: 0 }).repeatForever(),
+                );
+                plane.animRun(anim4);
             },
         });
-        // AFRAME.loadScene('scene1'); // load the scene
     </script>
 </body>
 

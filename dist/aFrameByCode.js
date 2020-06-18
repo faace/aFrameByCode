@@ -1,6 +1,6 @@
 // name: aFrameByCode
 // author: Faace Yu
-// version: 1.1.0
+// version: 1.1.1
 // github: https://github.com/faace/aFrameByCode
 
 (function (g) {
@@ -187,6 +187,53 @@
         }
     };
 
+    var animRun = function (anim) {
+        if (!anim || !anim.conf) return;
+
+        if (!this.hasLoaded) return this.addEventListener('loaded', function () {
+            animRun.bind(this)(anim);
+        });
+
+        var system = this.sceneEl && this.sceneEl.systems['afbcAnim'];
+        if (!system) {
+            return setTimeout(function () {
+                animRun.bind(this)(anim);
+            }, 100);
+        }
+
+        var animIdx = Date.now() + Math.round(10000 * Math.random());
+        var currConf = anim.conf;
+        currConf['currRepeat' + animIdx] = 0;
+        AnimRealRun.bind(this)(currConf, null, animIdx);
+    }
+    var animPause = function () {
+        if (!this.hasLoaded) return this.addEventListener('loaded', function () {
+            animPause.bind(this)();
+        });
+
+        var system = this.sceneEl && this.sceneEl.systems['afbcAnim'];
+        if (!system) {
+            return setTimeout(function () {
+                animPause.bind(this)();
+            }, 100);
+        }
+
+        system.pause(this);
+    };
+    var animResume = function () {
+        if (!this.hasLoaded) return this.addEventListener('loaded', function () {
+            animResume.bind(this)();
+        });
+
+        var system = this.sceneEl && this.sceneEl.systems['afbcAnim'];
+        if (!system) {
+            return setTimeout(function () {
+                animResume.bind(this)();
+            }, 100);
+        }
+
+        system.resume(this);
+    };
     var extendFunctions = function (el) { // add extend functions to the el
         el.addAnEntity = addAnEntity.bind(el);
         el.addEntities = addEntities.bind(el);
@@ -198,7 +245,9 @@
             setAttributes(el, attributes);
         };
 
-        el.run = Anim.run.bind(el);
+        el.animRun = animRun.bind(el);
+        el.animPause = animPause.bind(el);
+        el.animResume = animResume.bind(el);
         return el;
     };
 
@@ -361,8 +410,8 @@
         init: function () {
             this.list = [];
         },
-        addAnim: function (idx, anim) {
-            this.list.push({ idx: idx, anim: anim });
+        addAnim: function (idx, anim, target) {
+            this.list.push({ idx: idx, anim: anim, target: target });
         },
         removeAnim: function (idx) {
             for (var i = 0; i < this.list.length; i++) {
@@ -371,11 +420,37 @@
                 }
             }
         },
+        removeAnimByTarget: function (target) {
+            for (i = this.list.length - 1; i > -1; i--) {
+                if (this.list[i].target == target) {
+                    this.list.splice(i, 1);
+                }
+            }
+        },
+        pause: function (target) {
+            target.isAnimPause = true;
+            for (i = this.list.length - 1; i > -1; i--) {
+                if (this.list[i].target == target) {
+                    this.list[i].anim.pause();
+                }
+            }
+        },
+        resume: function (target) {
+            target.isAnimPause = false;
+            for (i = this.list.length - 1; i > -1; i--) {
+                if (this.list[i].target == target) {
+                    this.list[i].anim.play();
+                }
+            }
+        },
         tick: (function () {
-            var i, len;
+            var i;
             return function (ms) {
                 if (this.list.length) {
-                    for (i = this.list.length - 1; i > -1; i--) this.list[i].anim.tick(ms);
+                    for (i = this.list.length - 1; i > -1; i--) {
+                        if (this.list[i].target.isAnimPause) return;
+                        this.list[i].anim.tick(ms);
+                    }
                 }
             }
         })(),
@@ -385,53 +460,56 @@
     var Anim = function () { this.conf = null; };
     AFRAME.anim = function () { return new Anim(); };
 
-    AnimRealRun = function (conf, cb) {
-        if (conf.repeat > -1 && conf.currRepeat >= conf.repeat) {
-            conf.currRepeat = 0;
+    AnimRealRun = function (conf, cb, animIdx) {
+        if (conf._repeat > -1 && conf['currRepeat' + animIdx] >= conf._repeat) {
+            delete conf['currRepeat' + animIdx];
+            delete conf['_from' + animIdx];
+            delete conf['_to' + animIdx];
             return cb && cb(); // 循环结束了
         }
         var realRun = AnimRealRun.bind(this);
         var system = this.sceneEl.systems['afbcAnim'];
 
-        conf.currRepeat++;
+        conf['currRepeat' + animIdx]++;
         switch (conf.type) {
             case 'sequence': {
-                if (typeof conf.sequenceIdx == 'undefined') conf.sequenceIdx = 0;
-                var aConf = conf.sequence[conf.sequenceIdx];
-                conf.sequenceIdx++;
+                if (typeof conf['sequenceIdx' + animIdx] == 'undefined') conf['sequenceIdx' + animIdx] = 0;
+                var aConf = conf._sequence[conf['sequenceIdx' + animIdx]];
+                conf['sequenceIdx' + animIdx]++;
                 if (aConf) {
-                    conf.currRepeat--;
-                    aConf.currRepeat = 0;
+                    conf['currRepeat' + animIdx]--;
+                    aConf['currRepeat' + animIdx] = 0;
                     realRun(aConf, function () {
-                        realRun(conf, cb);
-                    });
+                        realRun(conf, cb, animIdx);
+                    }, animIdx);
                 } else {
-                    conf.sequenceIdx = 0;
-                    realRun(conf, cb);
+                    conf['sequenceIdx' + animIdx] = 0;
+                    realRun(conf, cb, animIdx);
                 }
                 break;
             }
             case 'spawn': {
-                var callback = afterAllCallback(conf.spawn.length, function () {
-                    realRun(conf, cb);
+                if (conf._spawn.length < 1) return realRun(conf, cb, animIdx);
+                var callback = afterAllCallback(conf._spawn.length, function () {
+                    realRun(conf, cb, animIdx);
                 });
-                for (var i = 0; i < conf.spawn.length; i++) {
-                    conf.spawn[i].currRepeat = 0;
-                    realRun(conf.spawn[i], callback);
+                for (var i = 0; i < conf._spawn.length; i++) {
+                    conf._spawn[i]['currRepeat' + animIdx] = 0;
+                    realRun(conf._spawn[i], callback, animIdx);
                 }
                 break;
             }
             case 'cb': {
-                conf.currRepeat = 0;
+                // conf['currRepeat' + animIdx] = 0;
                 conf.cb && conf.cb.bind(conf.taget)();
-                cb && cb();
+                realRun(conf, cb, animIdx);
+                // cb && cb();
                 break;
             }
             case 'delay': {
                 setTimeout(function () {
-                    conf.currRepeat = 0;
-                    cb && cb();
-                }, conf.delay);
+                    realRun(conf, cb, animIdx);
+                }, conf._delay);
                 break;
             }
             case 'fadeOut':
@@ -447,19 +525,28 @@
                 if (Array.isArray(m)) m.forEach(function (one) { one.transparent = true; })
                 else m.transparent = true;
 
-                var from = conf.from, to = conf.to;
-                if (typeof from == 'undefined') from = Array.isArray(m) ? m[0].opacity : m.opacity;
-
+                var from, to;
+                if (conf._reverse && conf['currRepeat' + animIdx] % 2 == 0) { // 需要反转
+                    to = conf['_from' + animIdx];
+                    from = conf['_to' + animIdx];
+                } else {
+                    from = conf.from;
+                    to = conf.to;
+                    if (typeof from == 'undefined') from = Array.isArray(m) ? m[0].opacity : m.opacity;
+                }
 
                 config.opacity = [from, to];
+
+                conf['_from' + animIdx] = from;
+                conf['_to' + animIdx] = to;
+
                 config.targets = m;
                 config.complete = function () {
                     system.removeAnim(idx);
-                    conf.currRepeat = 0;
-                    cb && cb();
+                    realRun(conf, cb, animIdx);
                 };
 
-                system.addAnim(idx, AFRAME.ANIME(config));
+                system.addAnim(idx, AFRAME.ANIME(config), this);
                 break;
             }
             case 'move':
@@ -472,23 +559,31 @@
                 var t = this.object3D && this.object3D.position;
                 if (!t) return cb && cb();
 
-                var from = conf.from && new THREE.Vector3().copy(conf.from), to = conf.to && new THREE.Vector3().copy(conf.to);
-                if (!from) from = new THREE.Vector3().copy(t);
-                if (!to) to = new THREE.Vector3().copy(t).add(conf.by);
+                var from, to;
+                if (conf._reverse && conf['currRepeat' + animIdx] % 2 == 0) { // 需要反转
+                    to = conf['_from' + animIdx];
+                    from = conf['_to' + animIdx];
+                } else {
+                    from = conf.from && new THREE.Vector3().copy(conf.from);
+                    to = conf.to && new THREE.Vector3().copy(conf.to);
+                    if (!from) from = new THREE.Vector3().copy(t);
+                    if (!to) to = new THREE.Vector3().copy(t).add(conf.by);
+                }
 
                 config.x = [from.x, to.x];
                 config.y = [from.y, to.y];
                 config.z = [from.z, to.z];
 
+                conf['_from' + animIdx] = from;
+                conf['_to' + animIdx] = to;
 
                 config.targets = t;
                 config.complete = function () {
                     system.removeAnim(idx);
-                    conf.currRepeat = 0;
-                    cb && cb();
+                    realRun(conf, cb, animIdx);
                 };
 
-                system.addAnim(idx, AFRAME.ANIME(config));
+                system.addAnim(idx, AFRAME.ANIME(config), this);
                 break;
             }
             case 'scale':
@@ -501,23 +596,31 @@
                 var t = this.object3D && this.object3D.scale;
                 if (!t) return cb && cb();
 
-                var from = conf.from && new THREE.Vector3().copy(conf.from), to = conf.to && new THREE.Vector3().copy(conf.to);
-                if (!from) from = new THREE.Vector3().copy(t);
-                if (!to) to = new THREE.Vector3().copy(t).add(conf.by);
+                var from, to;
+                if (conf._reverse && conf['currRepeat' + animIdx] % 2 == 0) { // 需要反转
+                    to = conf['_from' + animIdx];
+                    from = conf['_to' + animIdx];
+                } else {
+                    from = conf.from && new THREE.Vector3().copy(conf.from);
+                    to = conf.to && new THREE.Vector3().copy(conf.to);
+                    if (!from) from = new THREE.Vector3().copy(t);
+                    if (!to) to = new THREE.Vector3().copy(t).add(conf.by);
+                }
 
                 config.x = [from.x, to.x];
                 config.y = [from.y, to.y];
                 config.z = [from.z, to.z];
 
+                conf['_from' + animIdx] = from;
+                conf['_to' + animIdx] = to;
 
                 config.targets = t;
                 config.complete = function () {
                     system.removeAnim(idx);
-                    conf.currRepeat = 0;
-                    cb && cb();
+                    realRun(conf, cb, animIdx);
                 };
 
-                system.addAnim(idx, AFRAME.ANIME(config));
+                system.addAnim(idx, AFRAME.ANIME(config), this);
                 break;
             }
             case 'rotation':
@@ -530,172 +633,242 @@
                 var t = this.object3D && this.object3D.rotation;
                 if (!t) return cb && cb();
 
-                var from = conf.from && new THREE.Vector3().copy(conf.from), to = conf.to && new THREE.Vector3().copy(conf.to);
-                if (!from) from = new THREE.Vector3().copy(t);
-                if (!to) to = new THREE.Vector3().copy(t).add(conf.by);
+                var from, to;
+                if (conf._reverse && conf['currRepeat' + animIdx] % 2 == 0) { // 需要反转
+                    to = conf['_from' + animIdx];
+                    from = conf['_to' + animIdx];
+                } else {
+                    from = conf.from && new THREE.Vector3().copy(conf.from);
+                    to = conf.to && new THREE.Vector3().copy(conf.to);
+                    if (!from) from = new THREE.Vector3().copy(t);
+                    if (!to) to = new THREE.Vector3().copy(t).add(conf.by);
+                }
 
                 config.x = [from.x, to.x];
                 config.y = [from.y, to.y];
                 config.z = [from.z, to.z];
 
+                conf['_from' + animIdx] = from;
+                conf['_to' + animIdx] = to;
 
                 config.targets = t;
                 config.complete = function () {
                     system.removeAnim(idx);
-                    conf.currRepeat = 0;
-                    cb && cb();
+                    realRun(conf, cb, animIdx);
                 };
 
-                system.addAnim(idx, AFRAME.ANIME(config));
+                system.addAnim(idx, AFRAME.ANIME(config), this);
+                break;
+            }
+            case 'color':
+            case 'colorTo':
+            case 'colorBy': {
+                var idx = Date.now() + Math.round(10000 * Math.random());
+                var config = conf.getConfig();
+
+                // opacity need transparent is set to true;
+                var m = (this.object3DMap && this.object3DMap.mesh && this.object3DMap.mesh.material) || (this.components && this.components.material && this.components.material.material);
+                if (!m) return cb && cb();
+
+                var t = [];
+                if (Array.isArray(m)) m.forEach(function (one) { t.push(one.color) })
+                else t.push(m.color)
+
+                var from, to;
+                if (conf._reverse && conf['currRepeat' + animIdx] % 2 == 0) { // 需要反转
+                    to = conf['_from' + animIdx];
+                    from = conf['_to' + animIdx];
+                } else {
+                    from = conf.from && new THREE.Color().copy(conf.from);
+                    to = conf.to && new THREE.Color().copy(conf.to);
+                    if (!from) from = new THREE.Color().copy(t[0]);
+                    if (!to) to = new THREE.Color().copy(t[0]).add(conf.by);
+                }
+
+                config.r = [from.r, to.r];
+                config.g = [from.g, to.g];
+                config.b = [from.b, to.b];
+
+                conf['_from' + animIdx] = from;
+                conf['_to' + animIdx] = to;
+
+                config.targets = t;
+                config.complete = function () {
+                    system.removeAnim(idx);
+                    realRun(conf, cb, animIdx);
+                };
+
+                system.addAnim(idx, AFRAME.ANIME(config), this);
                 break;
             }
         }
-
-
-    };
-    Anim.run = function (anim) { // this is el;
-        var currConf = anim.conf;
-        currConf.currRepeat = 0;
-
-        AnimRealRun.bind(this)(currConf);
     };
 
     Anim.prototype.fadeOut = function (dur) {
-        return this.conf = new Conf().setDuration(dur).setFrom(1).setTo(0).setType('fadeOut');
+        return this.conf = new AnimConf().setDuration(dur).setFrom(1).setTo(0).setType('fadeOut');
     };
     Anim.prototype.fadeIn = function (dur) {
-        return this.conf = new Conf().setDuration(dur).setFrom(0).setTo(1).setType('fadeIn');
+        return this.conf = new AnimConf().setDuration(dur).setFrom(0).setTo(1).setType('fadeIn');
+    };
+    Anim.prototype.fadeTo = function (dur, opacity) {
+        return this.conf = new AnimConf().setDuration(dur).setTo(opacity).setType('fadeTo');
     };
     Anim.prototype.move = function (dur, from, to) {
-        return this.conf = new Conf().setDuration(dur).setFrom(from).setTo(to).setType('move');
+        return this.conf = new AnimConf().setDuration(dur).setFrom(from).setTo(to).setType('move');
     };
     Anim.prototype.moveTo = function (dur, to) {
-        return this.conf = new Conf().setDuration(dur).setTo(to).setType('moveTo');
+        return this.conf = new AnimConf().setDuration(dur).setTo(to).setType('moveTo');
     };
     Anim.prototype.moveBy = function (dur, by) {
-        return this.conf = new Conf().setDuration(dur).setBy(by).setType('moveBy');
+        return this.conf = new AnimConf().setDuration(dur).setBy(by).setType('moveBy');
     };
     Anim.prototype.scale = function (dur, from, to) {
-        return this.conf = new Conf().setDuration(dur).setFrom(from).setTo(to).setType('scale');
+        return this.conf = new AnimConf().setDuration(dur).setFrom(from).setTo(to).setType('scale');
     };
     Anim.prototype.scaleTo = function (dur, to) {
-        return this.conf = new Conf().setDuration(dur).setTo(to).setType('scaleTo');
+        return this.conf = new AnimConf().setDuration(dur).setTo(to).setType('scaleTo');
     };
     Anim.prototype.scaleBy = function (dur, by) {
-        return this.conf = new Conf().setDuration(dur).setBy(by).setType('scaleBy');
+        return this.conf = new AnimConf().setDuration(dur).setBy(by).setType('scaleBy');
     };
     var deg2Rad = Math.PI / 180;
     Anim.prototype.rotation = function (dur, from, to) {
-
         from = { x: from.x * deg2Rad, y: from.y * deg2Rad, z: from.z * deg2Rad };
         to = { x: to.x * deg2Rad, y: to.y * deg2Rad, z: to.z * deg2Rad };
-        return this.conf = new Conf().setDuration(dur).setFrom(from).setTo(to).setType('rotation');
+        return this.conf = new AnimConf().setDuration(dur).setFrom(from).setTo(to).setType('rotation');
     };
     Anim.prototype.rotationTo = function (dur, to) {
         to = { x: to.x * deg2Rad, y: to.y * deg2Rad, z: to.z * deg2Rad };
-        return this.conf = new Conf().setDuration(dur).setTo(to).setType('rotationTo');
+        return this.conf = new AnimConf().setDuration(dur).setTo(to).setType('rotationTo');
     };
     Anim.prototype.rotationBy = function (dur, by) {
         by = { x: by.x * deg2Rad, y: by.y * deg2Rad, z: by.z * deg2Rad };
-        return this.conf = new Conf().setDuration(dur).setBy(by).setType('rotationBy');
+        return this.conf = new AnimConf().setDuration(dur).setBy(by).setType('rotationBy');
+    };
+
+    var formatColor = function (color) {
+        if (typeof color != 'object') return new THREE.Color(color);
+        return { r: color.r / 255, g: color.g / 255, b: color.b / 255 };
+    }
+    Anim.prototype.color = function (dur, from, to) {
+        from = formatColor(from);
+        to = formatColor(to);
+        return this.conf = new AnimConf().setDuration(dur).setFrom(from).setTo(to).setType('color');
+    };
+    Anim.prototype.colorTo = function (dur, to) {
+        to = formatColor(to);
+        return this.conf = new AnimConf().setDuration(dur).setTo(to).setType('colorTo');
+    };
+    Anim.prototype.colorBy = function (dur, by) {
+        by = formatColor(by);
+        return this.conf = new AnimConf().setDuration(dur).setBy(by).setType('colorBy');
     };
     Anim.prototype.cb = function (cb, target) {
-        return this.conf = new Conf().setCb(cb, target).setType('cb');
+        return this.conf = new AnimConf().setCb(cb, target).setType('cb');
     };
     Anim.prototype.delay = function (s) {
-        return this.conf = new Conf().setDelay(s).setType('delay');
+        return this.conf = new AnimConf().delay(s).setType('delay');
     };
     Anim.prototype.sequence = function () {
-        return this.conf = new Conf().setSequence(arguments).setType('sequence');
+        return this.conf = new AnimConf().sequence(arguments).setType('sequence');
     };
     Anim.prototype.spawn = function () {
-        return this.conf = new Conf().setSpawn(arguments).setType('spawn');
+        return this.conf = new AnimConf().spawn(arguments).setType('spawn');
     };
 
-    Anim.prototype.tick = function (dms) {
-        if (!this.isPlaying) return;
-        this.time += dms;
-        this.animation.tick(this.time);
-    };
-
-    var Conf = function (conf) {
-        this.repeat = 1;
-        // this.type;
-        // this.duration;
-        // this.from;
-        // this.to;
-        // this.by;
-        // this.cb;
-        // this.repeat
+    var AnimConf = function () {
+        this._repeat = 1;
+        // this.type
+        // this.duration
+        // this.from
+        // this.to
+        // this.by
+        // this.cb
+        // this._delay
+        // this._reverse
+        // this.easing
         // this.currRepeat
-        // this.sequence
+        // this._sequence
         // this.sequenceIdx
-        // this.conf = conf;
     };
-    Conf.prototype.getConfig = function () {
+    AnimConf.prototype.getConfig = function () {
         var config = {
             autoplay: false,
             direction: 'normal',
             duration: 1000, // dur;
-            easing: 'easeInOutQuad',
+            easing: 'linear', // 'easeInOutQuad',
             elasticity: 400,
             loop: 0,
             round: false,
         };
         for (var i in config) {
-            if (typeof this[i] != 'undefined') config[i] = this[i];
+            if (typeof this['_' + i] != 'undefined') config[i] = this['_' + i];
         }
         return config;
     };
-    Conf.prototype.setType = function (type) {
+    AnimConf.prototype.setType = function (type) {
         this.type = type;
         return this;
     };
-    Conf.prototype.setDuration = function (ms) {
-        this.duration = parseInt(ms);
+    AnimConf.prototype.setDuration = function (ms) {
+        this._duration = parseInt(ms);
         return this;
     };
-    Conf.prototype.setFrom = function (from) {
+    AnimConf.prototype.setFrom = function (from) {
         this.from = from;
         return this;
     };
-    Conf.prototype.setTo = function (to) {
+    AnimConf.prototype.setTo = function (to) {
         this.to = to;
         return this;
     };
-    Conf.prototype.setBy = function (by) {
+    AnimConf.prototype.setBy = function (by) {
         this.by = by;
         return this;
     };
-    Conf.prototype.setCb = function (cb, taget) {
+    AnimConf.prototype.setCb = function (cb, taget) {
         this.cb = cb;
         this.taget = taget;
         return this;
     };
-    Conf.prototype.setDelay = function (s) {
-        this.delay = s;
+    AnimConf.prototype.delay = function (s) {
+        this._delay = s;
         return this;
     };
-    Conf.prototype.setSequence = function (list) {
-        var sequence = this.sequence = [];
+    AnimConf.prototype.reverse = function (r) {
+        this._reverse = true;
+        return this;
+    };
+    AnimConf.prototype.sequence = function (list) {
+        var _sequence = this._sequence = [];
         for (var i = 0; i < list.length; i++) {
-            sequence.push(list[i]);
+            _sequence.push(list[i]);
         }
         return this;
     };
-    Conf.prototype.setSpawn = function (list) {
-        var spawn = this.spawn = [];
+    AnimConf.prototype.spawn = function (list) {
+        var _spawn = this._spawn = [];
         for (var i = 0; i < list.length; i++) {
-            spawn.push(list[i]);
+            _spawn.push(list[i]);
         }
         return this;
     };
-    Conf.prototype.setRepeat = function (num) {
-        this.repeat = num;
+    AnimConf.prototype.repeat = function (num) {
+        this._repeat = num;
         return this;
     };
-    Conf.prototype.setRepeatForever = function () {
-        this.repeat = -1;
+    AnimConf.prototype.repeatForever = function () {
+        this._repeat = -1;
         return this;
     };
+    ['linear', 'easeInQuad', 'easeOutQuad', 'easeInOutQuad', 'easeInCubic', 'easeOutCubic', 'easeInOutCubic',
+        'easeInQuart', 'easeOutQuart', 'easeInOutQuart', 'easeInQuint', 'easeOutQuint', 'easeInOutQuint',
+        'easeInSine', 'easeOutSine', 'easeInOutSine', 'easeInExpo', 'easeOutExpo', 'easeInOutExpo',
+        'easeInCirc', 'easeOutCirc', 'easeInOutCirc', 'easeInBack', 'easeOutBack', 'easeInOutBack',
+        'easeInElastic', 'easeOutElastic', 'easeInOutElastic'].forEach(function (one) {
+            AnimConf.prototype[one] = function () {
+                this._easing = one;
+                return this;
+            };
+        })
 })(window);
