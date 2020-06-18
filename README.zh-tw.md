@@ -12,7 +12,7 @@ A-Frame-By-Code是A-Frame的壹個擴展，通過它，妳可以：
 
 ## 如何使用
 只要在aframe.min.js之後引用本庫即可：
-```
+```html
 <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
 <script src="https://faace.github.io/aFrameByCode/dist/aFrameByCode.min.js"></script>
 ```
@@ -23,7 +23,7 @@ A-Frame-By-Code是A-Frame的壹個擴展，通過它，妳可以：
 
 ## 定義壹個場景
 直接上代碼：
-```
+```javascript
 AFRAME.createAScene({
     id: 'scene1', // scene's id
     attributes: {}, // will add to a-scene's attibutes
@@ -43,7 +43,7 @@ AFRAME.createAScene({
 ```
 [這裏](https://faace.github.io/aFrameByCode/demo.html) 可以查看壹個簡單的例子。
 
-```
+```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -82,14 +82,14 @@ AFRAME.createAScene({
 通常，我們會把默認的實體放在場景的初始化函數onInit中創建。當然，也可以在後期的任何時候，任何地方（例如component組件中）來添加實體。
 添加實體有多種方式：
 - 最簡單的添加方式
-```
+```javascript
 scene.addAnEntity('a-box', {
     position: '0 1 -3',
 });
 ```
 
 - 通過壹個對象添加
-```
+```javascript
 scene.addAnEntity({
     tag: 'a-box',
     attibutes: {
@@ -100,7 +100,7 @@ scene.addAnEntity({
 ```
 
 - 添加實體的時候，順便指定id
-```
+```javascript
 scene.addAnEntity({
     tag: 'a-box#box1', // the string after # of the value is its id
     attibutes: {
@@ -111,7 +111,7 @@ scene.addAnEntity({
 ```
 
 - 壹次性添加多個實體
-```
+```javascript
 scene.addEntities({
     'a-box': {
         position: '-1 1 -3',
@@ -129,7 +129,7 @@ scene.addEntities({
 ```
 
 - 直接添加html格式的實體
-```
+```javascript
 scene.addEntities(`
     <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
     <a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E"></a-sphere>
@@ -142,7 +142,7 @@ scene.addEntities(`
 ## 處理資源
 資源會隨著場景的創建而創建。
 - 我們可以在定義場景的時候同時定義需要加載的資源
-```
+```javascript
 AFRAME.createAScene({
     id: 'scene4',
     assets: {
@@ -156,7 +156,7 @@ AFRAME.createAScene({
 ```
 
 - 我們可以通過scene.assets來使用資源的相關功能。
-```
+```javascript
 scene.assets.add('video', { // tag, attributes
     id: 'v',
     src: './videos/v.mp4',
@@ -167,13 +167,13 @@ scene.assets.add('video', { // tag, attributes
 ```
 
 - 給資源添加tag和id
-```
+```javascript
 scene.assets.add('a-asset-item#parrot', '../models/parrot.glb'); // (tag#id, src), #id is optional
 ```
 
 - 壹次性添加多個資源
 
-```
+```javascript
 var assets = {
     'img#texture1': './imgs/texture1.jpg',
     'img#texture2': './imgs/texture2.jpg',
@@ -183,7 +183,7 @@ scene.assets.addList(assets);
 
 如果我們是在onInit函數中通過scene.assets來添加資源，那麽我們是不需要調用load函數來正真加載。
 但是，如果我們在其他地方添加資源，那麽就需要我們自己調用load函數。
-```
+```javascript
 var scene = AFRAME.extCurrScene;
 var assets = scene.assets;
 assets.add('a-asset-item#stork', '../models/stork.glb').load(function () {
@@ -196,7 +196,7 @@ assets.add('a-asset-item#stork', '../models/stork.glb').load(function () {
 接著，我們可以通過組件'f-click-to-scene'或者使用AFRAME.loadScene來切換場景。
 註意：定義場景的時候並不會記載資源，只有在loadScene的時候才會正真加載資源
 
-```
+```javascript
 AFRAME.createAScene({
     id: 'scene1',
     onInit: function (scene) { // create anything in the functions
@@ -248,7 +248,7 @@ AFRAME.loadScene('scene1'); // load the scene
 
 使用方式：
 
-```
+```javascript
 var box = scene.addAnEntity('a-box', { position: "-1 0.5 -3", rotation: "0 45 0", color: "#4CC3D9" });
 var sphere = scene.addAnEntity('a-sphere', { position: "0 1.25 -5", radius: "1.25", color: "#EF2D5E" });
 var cylinder = scene.addAnEntity('a-cylinder', { position: "1 0.75 -3", radius: "0.5", height: "1.5", color: "#FFC65D" });

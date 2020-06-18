@@ -13,7 +13,7 @@ A-Frame-By-Code is an extension of A-Frame. You can use A-Frame as before, and y
 
 ## How to use
 Add the script after aframe.min.js
-```
+```html
 <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
 <script src="https://faace.github.io/aFrameByCode/dist/aFrameByCode.min.js"></script>
 ```
@@ -24,7 +24,7 @@ The link is [HERE](https://faace.github.io/aFrameByCode).
 
 ## Define a scene
 Below is the code of defining a scene.
-```
+```javascript
 AFRAME.createAScene({
     id: 'scene1', // scene's id
     attributes: {}, // will add to a-scene's attibutes
@@ -44,7 +44,7 @@ AFRAME.createAScene({
 ```
 An example is:  [Open this link to see the result.](https://faace.github.io/aFrameByCode/demo.html) 
 
-```
+```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -83,14 +83,14 @@ An example is:  [Open this link to see the result.](https://faace.github.io/aFra
 Usually we add default entities in the onInit function when creating a scene. Of course, we can add entities at any time and anywhere, we can also add entities in a component.
 There are many ways to add entities to the scene or another entities.
 - add an entity in a simple way
-```
+```javascript
 scene.addAnEntity('a-box', {
     position: '0 1 -3',
 });
 ```
 
 - add with an object
-```
+```javascript
 scene.addAnEntity({
     tag: 'a-box',
     attibutes: {
@@ -101,7 +101,7 @@ scene.addAnEntity({
 ```
 
 - add with an id
-```
+```javascript
 scene.addAnEntity({
     tag: 'a-box#box1', // the string after # of the value is its id
     attibutes: {
@@ -112,7 +112,7 @@ scene.addAnEntity({
 ```
 
 - add many entities at the same time
-```
+```javascript
 scene.addEntities({
     'a-box': {
         position: '-1 1 -3',
@@ -130,7 +130,7 @@ scene.addEntities({
 ```
 
 - add many entities by html
-```
+```javascript
 scene.addEntities(`
     <a-box position="-1 0.5 -3" rotation="0 45 0" color="#4CC3D9"></a-box>
     <a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E"></a-sphere>
@@ -143,7 +143,7 @@ scene.addEntities(`
 ## Handle assets
 A-assets will be added to the scene by default.
 - We can define assets as the key value when define the screne
-```
+```javascript
 AFRAME.createAScene({
     id: 'scene4',
     assets: {
@@ -157,7 +157,7 @@ AFRAME.createAScene({
 ```
 
 - We can use it by scene.assets
-```
+```javascript
 scene.assets.add('video', { // tag, attributes
     id: 'v',
     src: './videos/v.mp4',
@@ -168,13 +168,13 @@ scene.assets.add('video', { // tag, attributes
 ```
 
 - or add id to tag
-```
+```javascript
 scene.assets.add('a-asset-item#parrot', '../models/parrot.glb'); // (tag#id, src), #id is optional
 ```
 
 - or add many assets at the same times
 
-```
+```javascript
 var assets = {
     'img#texture1': './imgs/texture1.jpg',
     'img#texture2': './imgs/texture2.jpg',
@@ -184,7 +184,7 @@ scene.assets.addList(assets);
 
 If we add assets to scene.assets in function onInit, we do not need to call load function of assets.
 Buf if we add assets after the scene is loaded, we need to call load function by code.
-```
+```javascript
 var scene = AFRAME.extCurrScene;
 var assets = scene.assets;
 assets.add('a-asset-item#stork', '../models/stork.glb').load(function () {
@@ -196,7 +196,7 @@ assets.add('a-asset-item#stork', '../models/stork.glb').load(function () {
 Multiple scenes can be defined at the same time.
 And we can change from one scene to another by the component 'f-click-to-scene' or using code AFRAME.loadScene.
 
-```
+```javascript
 AFRAME.createAScene({
     id: 'scene1',
     onInit: function (scene) { // create anything in the functions
@@ -250,7 +250,7 @@ The exmaple is [HERE](https://faace.github.io/aFrameByCode/anim.html).
 
 Exmaple code:
 
-```
+```javascript
 var box = scene.addAnEntity('a-box', { position: "-1 0.5 -3", rotation: "0 45 0", color: "#4CC3D9" });
 var sphere = scene.addAnEntity('a-sphere', { position: "0 1.25 -5", radius: "1.25", color: "#EF2D5E" });
 var cylinder = scene.addAnEntity('a-cylinder', { position: "1 0.75 -3", radius: "0.5", height: "1.5", color: "#FFC65D" });
