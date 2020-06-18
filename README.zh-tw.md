@@ -224,3 +224,72 @@ AFRAME.loadScene('scene1'); // load the scene
 網頁打開的時候，需要指定默認場景，這裏有兩種方式來定義默認場景：
 - 代碼方式：`AFRAME.loadScene('scene1');`
 - 標簽方式：`<body scene="scene1">...</body>`
+
+## 動畫
+是的，aFrameByCode支持動畫，而且支持動畫的各種組合。
+壹個動畫可以多次使用，也可以給不同的實體同時使用。壹個是可以同時使用多個動畫。
+
+動畫有壹些方式：
+- fadeOut/fadeIn/fadeTo：改變透明度
+- move/moveTo/moveBy：改變位置
+- scale/scaleTo/ScaleBy：改變縮放
+- rotation/rotationTo/rotationBy：改變旋轉
+- color/colorTo/colorBy：改變顏色
+- delay：暫停多少毫秒
+- cb：回調函數
+- sequence：多個動畫依次運行
+- spawn：多個動畫同事運行
+
+主要的動畫還支持這些功能：repeat/repeatForever/reserve.
+
+例子請[點擊這裏](https://faace.github.io/aFrameByCode/anim.html)。
+
+![動畫效果圖](https://faace.github.io/aFrameByCode/imgs/anim.gif "動畫效果圖")
+
+使用方式：
+
+```
+var box = scene.addAnEntity('a-box', { position: "-1 0.5 -3", rotation: "0 45 0", color: "#4CC3D9" });
+var sphere = scene.addAnEntity('a-sphere', { position: "0 1.25 -5", radius: "1.25", color: "#EF2D5E" });
+var cylinder = scene.addAnEntity('a-cylinder', { position: "1 0.75 -3", radius: "0.5", height: "1.5", color: "#FFC65D" });
+var plane = scene.addAnEntity('a-plane', { position: "0 0 -4", rotation: "-90 0 0", width: "4", height: "4", color: "#7BC8A4" });
+var sky = scene.addAnEntity('a-sky', { color: "#ECECEC" });
+
+var anim1 = AFRAME.anim();
+anim1.sequence(
+    anim1.scale(1000, { x: 1, y: 1, z: 1 },{ x: 0.5, y: 0.5, z: 0.5 }),
+    anim1.scaleTo(1000, { x: 1, y: 1, z: 1 }),
+    anim1.scaleBy(1000, { x: 1, y: 0, z: 0 }),
+);
+cylinder.animRun(anim1);
+
+
+var anim2 = AFRAME.anim();
+anim2.sequence(
+    anim2.rotationBy(1000, { x: 45, y: 45, z: 45 }).repeat(2).reverse(),
+    anim2.fadeTo(1500, 0).repeat(2).reverse(),
+).repeatForever();
+cylinder.animRun(anim2);
+
+var anim3 = AFRAME.anim();
+anim3.sequence(
+    anim3.cb(function () {
+        console.log('start')
+    }),
+    anim3.moveTo(1000, { x: 1, y: 0.5, z: -3 }),
+    anim3.moveBy(1000, { x: 1, y: 1, z: -1 }).repeat(2).reverse(),
+    anim3.cb(function () {
+        console.log('end');
+        sphere.animRun(anim1);
+    }),
+    anim3.moveTo(1000, { x: -1, y: 0.5, z: -3 }),
+).repeatForever();
+box.animRun(anim3);
+
+var anim4 = AFRAME.anim();
+anim4.spawn(
+    anim4.colorBy(5000, { r: 100, g: 0, b: 0 }).repeatForever().reverse(),
+    anim4.rotationBy(1000, { x: 0, y: 360, z: 0 }).repeatForever(),
+);
+plane.animRun(anim4);
+```

@@ -248,6 +248,8 @@ The exmaple is [HERE](https://faace.github.io/aFrameByCode/anim.html).
 
 ![an animation example](https://faace.github.io/aFrameByCode/imgs/anim.gif "an animation example")
 
+Exmaple code:
+
 ```
 var box = scene.addAnEntity('a-box', { position: "-1 0.5 -3", rotation: "0 45 0", color: "#4CC3D9" });
 var sphere = scene.addAnEntity('a-sphere', { position: "0 1.25 -5", radius: "1.25", color: "#EF2D5E" });
@@ -293,4 +295,3 @@ anim4.spawn(
 );
 plane.animRun(anim4);
 ```
-
