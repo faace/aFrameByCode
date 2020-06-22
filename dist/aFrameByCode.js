@@ -1,6 +1,6 @@
 // name: aFrameByCode
 // author: Faace Yu
-// version: 1.1.1
+// version: 1.1.2
 // github: https://github.com/faace/aFrameByCode
 
 (function (g) {
@@ -459,7 +459,11 @@
 
     var Anim = function () { this.conf = null; };
     AFRAME.anim = function () { return new Anim(); };
-
+    var checkEpsilon = function (vec3) {
+        if (Math.abs(vec3.x) < Number.EPSILON) vec3.x = 0;
+        if (Math.abs(vec3.y) < Number.EPSILON) vec3.y = 0;
+        if (Math.abs(vec3.z) < Number.EPSILON) vec3.z = 0;
+    };
     AnimRealRun = function (conf, cb, animIdx) {
         if (conf._repeat > -1 && conf['currRepeat' + animIdx] >= conf._repeat) {
             delete conf['currRepeat' + animIdx];
@@ -570,6 +574,9 @@
                     if (!to) to = new THREE.Vector3().copy(t).add(conf.by);
                 }
 
+                checkEpsilon(from);
+                checkEpsilon(to);
+
                 config.x = [from.x, to.x];
                 config.y = [from.y, to.y];
                 config.z = [from.z, to.z];
@@ -607,6 +614,9 @@
                     if (!to) to = new THREE.Vector3().copy(t).add(conf.by);
                 }
 
+                checkEpsilon(from);
+                checkEpsilon(to);
+
                 config.x = [from.x, to.x];
                 config.y = [from.y, to.y];
                 config.z = [from.z, to.z];
@@ -643,6 +653,9 @@
                     if (!from) from = new THREE.Vector3().copy(t);
                     if (!to) to = new THREE.Vector3().copy(t).add(conf.by);
                 }
+
+                checkEpsilon(from);
+                checkEpsilon(to);
 
                 config.x = [from.x, to.x];
                 config.y = [from.y, to.y];
