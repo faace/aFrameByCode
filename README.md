@@ -238,7 +238,7 @@ The animations are list below:
 - rotation/rotationTo/rotationBy: change the rotation
 - color/colorTo/colorBy: change the color
 - delay: delay some ms
-- cb: run all callback function
+- cb: run a callback function
 - sequence: let many animations run one by one
 - spawn: let many animations runn all together at the same time
 
