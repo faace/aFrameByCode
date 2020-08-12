@@ -1,6 +1,6 @@
 // name: aFrameByCode
 // author: Faace Yu
-// version: 1.1.3
+// version: 1.2.3
 // github: https://github.com/faace/aFrameByCode
 
 (function (g) {
@@ -160,12 +160,10 @@
 
         return el;
     };
-
     var removeAnEntity = function (id) {
         var el = AFRAME.$(id);
         el.parentNode.removeChild(el);
     };
-
     var removeEntities = function (ids) {
         var els = $$(ids);
         for (var i = 0; i < els.length; i++) {
@@ -355,7 +353,6 @@
         }, parm.onLoading && parm.onLoading.bind(parm));
     }
 
-
     // for Assets class
     var addAssetsEventListener = function (el, tag, callback) { // not handle error situation. maybe next version
         if (!callback) return; // do not need to know when it is loaded
@@ -505,7 +502,6 @@
             }
         })(),
     });
-
 
     var Anim = function () { this.conf = null; };
     AFRAME.anim = function () { return new Anim(); };
@@ -933,5 +929,254 @@
                 this._easing = one;
                 return this;
             };
-        })
+        });
+
+    // for message =========================
+    var EventManager = function () {
+        this.events = {}; // record all listeners according to the event name;
+        this.targets = []; // record listerner for any event
+    };
+    EventManager.prototype.onAny = function (listener, priority, once) { // bigger priority and higher 
+        if (!listener) return this;
+        var targets = this.targets;
+        for (var i = 0; i < targets.length; i++) {
+            if (listener == targets[i]) return this;
+        }
+        targets.push({
+            listener: listener,
+            pri: parseInt(priority || 0),
+            once: once || -1 // -1: always, 1 means once, 2 means 2 times
+        });
+        targets.sort(function (a, b) { return a.pri - b.pri });
+        return this;
+    };
+
+    EventManager.prototype.offAny = function (listener) { // remove a listener for any event
+        if (!listener) return this;
+        var targets = this.targets;
+        for (var i = 0; i < targets.length; i++) {
+            if (listener == targets[i].listener) {
+                targets.splice(i, 1);
+                return this;
+            }
+        }
+        return this;
+    };
+
+    EventManager.prototype.on = function (eventName, listener, priority, once) { // listen an event
+        if (!eventName) return this;
+        var firstChar = eventName.slice(0, 1);
+        if (firstChar != firstChar.toUpperCase()) throw '[First char of the string must be upper case]';
+        if (typeof listener != 'function') {
+            if (!listener || !(listener['on' + eventName] || listener['onAnyMsg'])) throw '[No on' + eventName + ' or onAnyMsg handler of the listener]';
+        }
+
+        if (!this.events[eventName]) this.events[eventName] = [];
+        var eventListeners = this.events[eventName];
+        eventListeners.push({
+            listener: listener,
+            pri: parseInt(priority || 0),
+            once: once || -1
+        });
+        eventListeners.sort(function (a, b) { return a.pri - b.pri });
+        return this;
+    };
+
+    EventManager.prototype.ons = function (eventNames, listener, priority, once) { // listen events
+        if (Array.isArray(eventNames)) {
+            for (var i = 0, len = eventNames.length; i < len; i++) {
+                this.on(eventNames[i], listener, priority, once);
+            }
+        }
+        return this;
+    };
+
+    EventManager.prototype.off = function (eventName, listener) { // unlisten an event
+        var eventListeners = this.events[eventName];
+        if (eventListeners) {
+            for (var i = 0, len = eventListeners.length; i < len; i++) {
+                if (eventListeners[i].listener == listener) {
+                    eventListeners.splice(i, 1);
+                    return this;
+                }
+            }
+        }
+        return this;
+    };
+
+    EventManager.prototype.offAll = function (eventName) { // remove all listener for an event
+        if (this.events[eventName]) {
+            delete this.events[eventName];
+        }
+        return this;
+    };
+
+    EventManager.prototype.emit = function (event) {
+        var eventName = event.name;
+        var eventListeners = this.events[eventName];
+        var one, eventHandler, listener, rc;
+        var handleTargets = [];
+        // 1. handle spectified listeners first
+        if (eventListeners) {
+            for (var i = eventListeners.length - 1; i >= 0; i--) {
+                one = eventListeners[i];
+                eventHandler = 'on' + eventName;
+                listener = one.listener;
+                if (typeof listener != 'function') {
+                    if (!listener[eventHandler]) eventHandler = 'onAnyMsg';
+                    rc = listener[eventHandler] && listener[eventHandler](event); // 如果返回true，表示不再下发
+                    handleTargets.push(listener);
+                } else {
+                    rc = listener(event);
+                }
+                if (--one.once == 0) eventListeners.splice(i, 1); // 如果只是 一次，那么就删除我
+                if (rc === true) return;
+            }
+        }
+        // 2. handle any event listeners
+        var targets = this.targets;
+        for (var i = 0; i < targets.length; i++) {
+            one = targets[i];
+            if (handleTargets.indexOf(one) >= 0) continue; // 已经处理过了，不需要在这里处理
+            eventHandler = 'on' + eventName;
+            listener = one.listener;
+            if (!listener[eventHandler]) eventHandler = 'onAnyMsg';
+            rc = listener[eventHandler] && listener[eventHandler](event); // 如果返回true，表示不再下发
+
+            if (--one.once == 0) targets.splice(i, 1); // 如果只是 一次，那么就删除我
+            if (rc === true) return;
+        }
+    };
+    AFRAME.EMC = EventManager;
+    AFRAME.EM = new EventManager();
+
+    // hijack register function
+    var hijackRegister = function (parm, initName, removeName) {
+        initName = initName || 'init';
+        removeName = removeName || 'remove';
+
+        var init;
+
+        if (parm[initName]) init = parm[initName];
+        parm[initName] = function () {
+            this.EM = AFRAME.EM;
+            this.myEventList = [];
+            init && init.apply(this, arguments);
+        };
+
+
+        var remove;
+        if (parm[removeName]) remove = parm[removeName];
+        parm[removeName] = function () {
+            this.removeAllEvent();
+            remove && remove.apply(this, arguments);
+        };
+
+        parm.removeAllEvent = function () {
+            var one;
+            for (var i = 0, len = this.myEventList.length; i < len; i++) { // 自动删除所有监听消息
+                one = this.myEventList[i];
+                this.EM.off(one.eventName, one.target);
+            }
+            this.myEventList.length = 0;
+
+            this.EM.offAny(this);
+        };
+        parm.on = function (eventName, target, priority) { // 监听消息
+            target = target || this;
+            var one;
+            for (var i = 0, len = this.myEventList.length; i < len; i++) {
+                one = this.myEventList[i];
+                if (one.target == target && one.eventName == eventName) return this; // 重复了
+            }
+            this.myEventList.push({ target: target, eventName: eventName });
+            this.EM.on(eventName, target, priority); // 注册监听消息
+            return this;
+        };
+        parm.ons = function (eventNames, target, priority) {
+            if (arguments.length > 0) {
+                var len;
+                if (!Array.isArray(eventNames)) { // 表示分开写了
+                    eventNames = arguments;
+                    priority = arguments[arguments.length - 1];
+                    if (typeof priority == 'number') {
+                        target = arguments[arguments.length - 2];
+                        if (typeof target == 'object') {
+                            len = arguments.length - 2;
+                        } else {
+                            target = null;
+                            len = arguments.length - 1;
+                        }
+                    } else if (typeof priority == 'object') {
+                        len = arguments.length - 1;
+                        target = priority;
+                        priority = 0;
+                    } else {
+                        len = arguments.length;
+                        priority = 0;
+                        target = null;
+                    }
+                } else {
+                    len = eventNames.length;
+                    if (typeof target == 'number') {
+                        priority = target;
+                        target = null;
+                    }
+                }
+
+                for (var i = 0; i < len; i++) {
+                    this.on(eventNames[i], target, priority);
+                }
+            }
+            return this;
+        };
+        parm.off = function (eventName, target) { // 注销监听消息
+            target = target || this;
+            var one;
+            for (var i = 0, len = this.myEventList.length; i < len; i++) {
+                one = this.myEventList[i];
+                if (one.target == target && one.eventName == eventName) {
+                    this.EM.off(eventName, target);
+                    this.myEventList.splice(i, 1);
+                    return this; // 重复了
+                }
+            }
+            return this;
+        };
+        parm.offs = function (eventNames, target) {
+            for (var i = 0, len = eventNames.length; i < len; i++) {
+                this.off(eventNames[i], target);
+            }
+            return this;
+        };
+        parm.onAny = function (priority, once) {
+            this.EM.onAny(this, priority, once);
+        };
+        parm.offAny = function () {
+            this.EM.offAny(this);
+        };
+        parm.emit = function (name, data, interval, afterFrames, cb) {
+            if (typeof name == 'string') {
+                this.EM.emit({ name: name, data: data }, interval, afterFrames, cb);
+            } else { // name is an obj
+                this.EM.emit(name, data, interval);
+            }
+        };
+        return parm;
+    };
+
+    ['registerComponent', 'registerGeometry', 'registerSystem', 'registerShader', 'registerPrimitive'].forEach(function (one) { // 'registerElement'
+        var func = AFRAME[one].bind(AFRAME);
+        AFRAME[one] = function (tag, parm) {
+            return func(tag, hijackRegister(parm));
+        };
+    });
+
+    ['createAScene'].forEach(function (one) {
+        var func = AFRAME[one].bind(AFRAME);
+        AFRAME[one] = function (parm) {
+            return func(hijackRegister(parm, 'onInit', 'onRemove'));
+        };
+    });
+
 })(window);
