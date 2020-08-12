@@ -1,6 +1,6 @@
 // name: aFrameByCode
 // author: Faace Yu
-// version: 1.1.2
+// version: 1.1.3
 // github: https://github.com/faace/aFrameByCode
 
 (function (g) {
@@ -8,7 +8,7 @@
     AFRAME.$$ = $$ = document.querySelectorAll.bind(document); // for class
 
     // public functions
-    var afterAllCallback = function (num, cb, progressCb) {
+    var afterAllCallback = AFRAME.afterAllCallback = function (num, cb, progressCb) {
         var count = 0;
         return function () {
             progressCb && progressCb(Math.min(num, count + 1), num);
@@ -186,6 +186,55 @@
             }
         }
     };
+    var defineGetterSetter = function (parm) {
+        Object.defineProperty(parm.obj, parm.key, {
+            get: parm.get,
+            set: parm.set,
+        });
+    };
+    var defineVector3GetterSetter = function (obj, vec3) {
+        defineGetterSetter({
+            obj: obj,
+            key: 'x',
+            get: function () { return vec3.x; },
+            set: function (value) { return vec3.x = value },
+        });
+        defineGetterSetter({
+            obj: obj,
+            key: 'y',
+            get: function () { return vec3.y; },
+            set: function (value) { return vec3.y = value },
+        });
+        defineGetterSetter({
+            obj: obj,
+            key: 'z',
+            get: function () { return vec3.z; },
+            set: function (value) { return vec3.z = value },
+        });
+
+    };
+    var addQuickAttributes = AFRAME.addQuickAttributes = function (el) {
+        if (typeof el.visible == 'undefined') {
+            defineGetterSetter({
+                obj: el,
+                key: 'visible',
+                get: function () { return el.getAttribute('visible') },
+                set: function (value) { return el.setAttribute('visible', value) },
+            });
+        }
+        if (el.object3D && el.object3D.position) {
+            el.position = {};
+            defineVector3GetterSetter(el.position, el.object3D.position);
+        }
+        if (el.object3D && el.object3D.rotation) {
+            el.rotation = {};
+            defineVector3GetterSetter(el.rotation, el.object3D.rotation);
+        }
+        if (el.object3D && el.object3D.scale) {
+            el.scale = {};
+            defineVector3GetterSetter(el.scale, el.object3D.scale);
+        }
+    };
 
     var animRun = function (anim) {
         if (!anim || !anim.conf) return;
@@ -244,6 +293,7 @@
         el.setAttributes = function (attributes) {
             setAttributes(el, attributes);
         };
+        addQuickAttributes(el);
 
         el.animRun = animRun.bind(el);
         el.animPause = animPause.bind(el);
