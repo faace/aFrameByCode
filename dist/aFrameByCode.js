@@ -1,6 +1,6 @@
 // name: aFrameByCode
 // author: Faace Yu
-// version: 1.2.3
+// version: 1.2.4
 // github: https://github.com/faace/aFrameByCode
 
 (function (g) {
@@ -968,7 +968,7 @@
         var firstChar = eventName.slice(0, 1);
         if (firstChar != firstChar.toUpperCase()) throw '[First char of the string must be upper case]';
         if (typeof listener != 'function') {
-            if (!listener || !(listener['on' + eventName] || listener['onAnyMsg'])) throw '[No on' + eventName + ' or onAnyMsg handler of the listener]';
+            if (!listener || !(listener['on' + eventName] || listener['onAnyEvent'])) throw '[No on' + eventName + ' or onAnyEvent handler of the listener]';
         }
 
         if (!this.events[eventName]) this.events[eventName] = [];
@@ -1023,7 +1023,7 @@
                 eventHandler = 'on' + eventName;
                 listener = one.listener;
                 if (typeof listener != 'function') {
-                    if (!listener[eventHandler]) eventHandler = 'onAnyMsg';
+                    if (!listener[eventHandler]) eventHandler = 'onAnyEvent';
                     rc = listener[eventHandler] && listener[eventHandler](event); // 如果返回true，表示不再下发
                     handleTargets.push(listener);
                 } else {
@@ -1040,7 +1040,7 @@
             if (handleTargets.indexOf(one) >= 0) continue; // 已经处理过了，不需要在这里处理
             eventHandler = 'on' + eventName;
             listener = one.listener;
-            if (!listener[eventHandler]) eventHandler = 'onAnyMsg';
+            if (!listener[eventHandler]) eventHandler = 'onAnyEvent';
             rc = listener[eventHandler] && listener[eventHandler](event); // 如果返回true，表示不再下发
 
             if (--one.once == 0) targets.splice(i, 1); // 如果只是 一次，那么就删除我

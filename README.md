@@ -225,6 +225,7 @@ There are two ways to define the default scene.
 - set default scene by code: `AFRAME.loadScene('scene1');`
 - set default scene as an attribute in body tag: `<body scene="scene1">...</body>`
 
+
 ## Animation
 Animations are supported, and all of them can be combined to use.
 One Animation can be applied many times.
@@ -294,4 +295,45 @@ anim4.spawn(
     anim4.rotationBy(1000, { x: 0, y: 360, z: 0 }).repeatForever(),
 );
 plane.animRun(anim4);
+```
+
+
+## Event
+A global Event system is added into A-Frame. when calling functions registerComponent, registerGeometry, 'registerSystem', registerShader, registerPrimitive and createAScene, you can use this.on/this.ons in any function to listen some events and do not neet to worry about unlistening events because aFrameByCode will do this for you. You can also unlistening events manually by this.off/this.offs。
+
+When listening an event, you need to implement the event handler(on + eventName) or just implement the onAnyEvent function which can receive any event. 
+
+you can use this.emit(eventName, eventData) to emit an event.
+
+
+The following code is an example to use Event:
+```
+AFRAME.registerComponent('counter', {
+    schema: {
+        step: { type: 'int', default: 1 }
+    },
+    init: function () {
+        this.on('Counter'); // listen the "Counter" event.
+    },
+    onCounter: function (event) { // define a handle function for the "Counter" event, the function name should be on+EventName
+        var num = event.data.num;
+        this.el.setAttribute('value', Math.floor(num / this.data.step));
+    }
+});
+
+AFRAME.createAScene({
+    id: 'scene1',
+    onInit: function (scene) {
+        scene.addEntities({
+            'a-text#mid': { position: '0 2 -4', value: "0", color: "green", counter: '' },
+        });
+
+        var num = 0;
+        setInterval(function () {
+            this.emit('Counter', { num: ++num }); // send the "Counter" event
+        }.bind(this), 1000);
+    },
+});
+AFRAME.loadScene('scene1');
+
 ```

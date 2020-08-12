@@ -225,6 +225,7 @@ AFRAME.loadScene('scene1'); // load the scene
 - 代码方式：`AFRAME.loadScene('scene1');`
 - 标签方式：`<body scene="scene1">...</body>`
 
+
 ## 动画
 是的，aFrameByCode支持动画，而且支持动画的各种组合。
 一个动画可以多次使用，也可以给不同的实体同时使用。一个是可以同时使用多个动画。
@@ -292,4 +293,45 @@ anim4.spawn(
     anim4.rotationBy(1000, { x: 0, y: 360, z: 0 }).repeatForever(),
 );
 plane.animRun(anim4);
+```
+
+
+## Event
+支持全局范围的事件系统，当你调用registerComponent，registerGeometry，registerSystem，registerShader，registerPrimitive和createAScene函数时, 你可以在任何函数使用this.on/this.ons来注册事件，你可以通过this.off/this.offs来注销事件。否则，系统会在对应的对象释放的时候自动注销 
+
+如果你监听了一个事件，那么你必须写一个事件处理函数（格式必须是on+事件名）来处理它，也可以写无能函数onAnyEvent来接收所有事件。
+
+你可以通过调用this.emit(eventName, eventData)来发射事件。
+
+
+以下是使用范例：
+```
+AFRAME.registerComponent('counter', {
+    schema: {
+        step: { type: 'int', default: 1 }
+    },
+    init: function () {
+        this.on('Counter'); // listen the "Counter" event.
+    },
+    onCounter: function (event) { // define a handle function for the "Counter" event, the function name should be on+EventName
+        var num = event.data.num;
+        this.el.setAttribute('value', Math.floor(num / this.data.step));
+    }
+});
+
+AFRAME.createAScene({
+    id: 'scene1',
+    onInit: function (scene) {
+        scene.addEntities({
+            'a-text#mid': { position: '0 2 -4', value: "0", color: "green", counter: '' },
+        });
+
+        var num = 0;
+        setInterval(function () {
+            this.emit('Counter', { num: ++num }); // send the "Counter" event
+        }.bind(this), 1000);
+    },
+});
+AFRAME.loadScene('scene1');
+
 ```

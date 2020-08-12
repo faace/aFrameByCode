@@ -293,3 +293,44 @@ anim4.spawn(
 );
 plane.animRun(anim4);
 ```
+
+
+## Event
+支持全局範圍的事件系統，當你調用registerComponent，registerGeometry，registerSystem，registerShader，registerPrimitive和createAScene函數時, 你可以在任何函數使用this.on/this.ons來註冊事件，你可以通過this.off/this. offs來註銷事件。否則，系統會在對應的對象釋放的時候自動註銷
+
+如果你監聽了一個事件，那麼你必須寫一個事件處理函數（格式必須是on+事件名）來處理它，也可以寫無能函數onAnyEvent來接收所有事件。
+
+你可以通過調用this.emit(eventName, eventData)來發射事件。
+
+
+以下是使用範例：
+```
+AFRAME.registerComponent('counter', {
+    schema: {
+        step: { type: 'int', default: 1 }
+    },
+    init: function () {
+        this.on('Counter'); // listen the "Counter" event.
+    },
+    onCounter: function (event) { // define a handle function for the "Counter" event, the function name should be on+EventName
+        var num = event.data.num;
+        this.el.setAttribute('value', Math.floor(num / this.data.step));
+    }
+});
+
+AFRAME.createAScene({
+    id: 'scene1',
+    onInit: function (scene) {
+        scene.addEntities({
+            'a-text#mid': { position: '0 2 -4', value: "0", color: "green", counter: '' },
+        });
+
+        var num = 0;
+        setInterval(function () {
+            this.emit('Counter', { num: ++num }); // send the "Counter" event
+        }.bind(this), 1000);
+    },
+});
+AFRAME.loadScene('scene1');
+
+```
