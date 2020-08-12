@@ -305,6 +305,7 @@ When listening an event, you need to implement the event handler(on + eventName)
 
 you can use this.emit(eventName, eventData) to emit an event.
 
+The exmaple is [HERE](https://faace.github.io/aFrameByCode/event.html).
 
 The following code is an example to use Event:
 ```

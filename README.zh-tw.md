@@ -302,6 +302,7 @@ plane.animRun(anim4);
 
 你可以通過調用this.emit(eventName, eventData)來發射事件。
 
+例子請[點擊這裏](https://faace.github.io/aFrameByCode/event.html)。
 
 以下是使用範例：
 ```
